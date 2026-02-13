@@ -1,116 +1,107 @@
-// TurkOS Kernel v0.1
-// Batuhan ALGUL, 2026
-// Apache License 2.0
+/*
+ * TurkOS Kernel v0.1.1
+ * Copyright (c) 2026 TurkOS Development Team
+ * Licensed under the Apache License 2.0
+ */
 
-typedef unsigned int   uint32_t;
-typedef unsigned short uint16_t;
-typedef unsigned char  uint8_t;
+#include <stdint.h>
 
-#define VGA_MEMORY 0xB8000
-#define VGA_WIDTH 80
-#define VGA_HEIGHT 25
+#define VGA_ADDR 0xB8000
+#define VGA_W 80
+#define VGA_H 25
 
-static uint16_t* vga_buffer = (uint16_t*)VGA_MEMORY;
-static uint32_t cursor_row = 0;
-static uint32_t cursor_col = 0;
+struct gdt_entry {
+    uint16_t limit_low;
+    uint16_t base_low;
+    uint8_t  base_middle;
+    uint8_t  access;
+    uint8_t  granularity;
+    uint8_t  base_high;
+} __attribute__((packed));
 
-enum vga_color {
-    COLOR_BLACK = 0,
-    COLOR_BLUE = 1,
-    COLOR_GREEN = 2,
-    COLOR_CYAN = 3,
-    COLOR_RED = 4,
-    COLOR_MAGENTA = 5,
-    COLOR_BROWN = 6,
-    COLOR_LIGHT_GREY = 7,
-    COLOR_DARK_GREY = 8,
-    COLOR_LIGHT_BLUE = 9,
-    COLOR_LIGHT_GREEN = 10,
-    COLOR_LIGHT_CYAN = 11,
-    COLOR_LIGHT_RED = 12,
-    COLOR_LIGHT_MAGENTA = 13,
-    COLOR_YELLOW = 14,
-    COLOR_WHITE = 15
-};
+struct gdt_ptr {
+    uint16_t limit;
+    uint32_t base;
+} __attribute__((packed));
 
-static inline uint8_t vga_color(uint8_t fg, uint8_t bg) {
-    return fg | bg << 4;
+static struct gdt_entry gdt[5];
+static struct gdt_ptr gp;
+static uint16_t* vga = (uint16_t*)VGA_ADDR;
+static uint32_t x = 0;
+static uint32_t y = 0;
+
+void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
+    gdt[num].base_low    = (base & 0xFFFF);
+    gdt[num].base_middle = (base >> 16) & 0xFF;
+    gdt[num].base_high   = (base >> 24) & 0xFF;
+    gdt[num].limit_low   = (limit & 0xFFFF);
+    gdt[num].granularity = (limit >> 16) & 0x0F;
+    gdt[num].granularity |= (gran & 0xF0);
+    gdt[num].access      = access;
 }
 
-static inline uint16_t vga_entry(char c, uint8_t color) {
-    return (uint16_t)c | (uint16_t)color << 8;
+void gdt_init() {
+    gp.limit = (sizeof(struct gdt_entry) * 5) - 1;
+    gp.base  = (uint32_t)&gdt;
+
+    gdt_set_gate(0, 0, 0, 0, 0);                
+    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); 
+    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); 
+    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); 
+    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); 
+
+    __asm__ volatile("lgdt (%0)" : : "r" (&gp));
 }
 
-void terminal_clear(void) {
-    uint8_t color = vga_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-    for (uint32_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
-        vga_buffer[i] = vga_entry(' ', color);
-    }
-    cursor_row = 0;
-    cursor_col = 0;
-}
-
-void terminal_putchar(char c, uint8_t color) {
+void vga_putc(char c, uint8_t color) {
     if (c == '\n') {
-        cursor_col = 0;
-        if (++cursor_row == VGA_HEIGHT) {
-            cursor_row = 0;
-        }
-        return;
+        x = 0;
+        y++;
+    } else {
+        vga[y * VGA_W + x] = (uint16_t)c | (uint16_t)color << 8;
+        x++;
+    }
+
+    if (x >= VGA_W) {
+        x = 0;
+        y++;
     }
     
-    uint32_t index = cursor_row * VGA_WIDTH + cursor_col;
-    vga_buffer[index] = vga_entry(c, color);
-    
-    if (++cursor_col == VGA_WIDTH) {
-        cursor_col = 0;
-        if (++cursor_row == VGA_HEIGHT) {
-            cursor_row = 0;
+    if (y >= VGA_H) {
+        for (int i = 0; i < VGA_W * (VGA_H - 1); i++) {
+            vga[i] = vga[i + VGA_W];
         }
+        for (int i = VGA_W * (VGA_H - 1); i < VGA_W * VGA_H; i++) {
+            vga[i] = (uint16_t)' ' | (uint16_t)0x07 << 8;
+        }
+        y = VGA_H - 1;
     }
 }
 
-void terminal_print(const char* str, uint8_t color) {
-    while (*str) {
-        terminal_putchar(*str++, color);
-    }
+void vga_puts(const char* str, uint8_t color) {
+    while (*str) vga_putc(*str++, color);
 }
 
-void kernel_main(void) {
-    terminal_clear();
+void vga_clear() {
+    for (int i = 0; i < VGA_W * VGA_H; i++) {
+        vga[i] = (uint16_t)' ' | (uint16_t)0x07 << 8;
+    }
+    x = 0;
+    y = 0;
+}
+
+void kernel_main() {
+    gdt_init();
+    vga_clear();
+
+    vga_puts("TurkOS v0.1.1\n", 0x0C);
+    vga_puts("Core: GDT Initialized\n", 0x0A);
+    vga_puts("Arch: x86 Protected Mode\n", 0x0B);
+    vga_puts("License: Apache 2.0 (TurkOS Team)\n\n", 0x07);
     
-    uint8_t title_color = vga_color(COLOR_LIGHT_RED, COLOR_BLACK);
-    terminal_print("================================================================================\n", title_color);
-    terminal_print("                              TurkOS v0.1 Alpha                                \n", title_color);
-    terminal_print("================================================================================\n\n", title_color);
-    
-    uint8_t success_color = vga_color(COLOR_LIGHT_GREEN, COLOR_BLACK);
-    terminal_print("[OK] Kernel initialized\n", success_color);
-    terminal_print("[OK] VGA text mode active\n", success_color);
-    terminal_print("[OK] Memory ready\n", success_color);
-    terminal_print("[OK] System services loaded\n\n", success_color);
-    
-    uint8_t info_color = vga_color(COLOR_LIGHT_CYAN, COLOR_BLACK);
-    terminal_print("System Information:\n", info_color);
-    
-    uint8_t normal_color = vga_color(COLOR_WHITE, COLOR_BLACK);
-    terminal_print("  Version:     0.1 Alpha\n", normal_color);
-    terminal_print("  Architecture: x86 (32-bit)\n", normal_color);
-    terminal_print("  Build Date:   ", normal_color);
-    terminal_print(__DATE__, normal_color);
-    terminal_print("\n", normal_color);
-    terminal_print("  Developer:    Batuhan ALGUL\n", normal_color);
-    terminal_print("  License:      Apache 2.0\n\n", normal_color);
-    
-    uint8_t copyright_color = vga_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-    terminal_print("Turkish Open Source Operating System\n", copyright_color);
-    terminal_print("Copyright (c) 2026 Batuhan ALGUL. All rights reserved.\n\n", copyright_color);
-    
-    uint8_t status_color = vga_color(COLOR_YELLOW, COLOR_BLACK);
-    terminal_print(">>> Kernel running. System halted.\n", status_color);
-    terminal_print(">>> Close virtual machine to exit.\n", status_color);
-    
+    vga_puts("System status: Ready.\n", 0x0F);
+
     while (1) {
-        __asm__ volatile ("hlt");
+        __asm__ volatile("hlt");
     }
 }
