@@ -1,5 +1,5 @@
 /*
- * TurkOS Kernel v0.1.1
+ * TurkOS Kernel v0.1.2
  * Copyright (c) 2026 TurkOS Development Team
  * Licensed under the Apache License 2.0
  */
@@ -24,34 +24,27 @@ struct gdt_ptr {
     uint32_t base;
 } __attribute__((packed));
 
+struct idt_entry {
+    uint16_t base_lo;
+    uint16_t sel;
+    uint8_t  always0;
+    uint8_t  flags;
+    uint16_t base_hi;
+} __attribute__((packed));
+
+struct idt_ptr {
+    uint16_t limit;
+    uint32_t base;
+} __attribute__((packed));
+
 static struct gdt_entry gdt[5];
 static struct gdt_ptr gp;
+static struct idt_entry idt[256];
+static struct idt_ptr ip;
+
 static uint16_t* vga = (uint16_t*)VGA_ADDR;
 static uint32_t x = 0;
 static uint32_t y = 0;
-
-void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
-    gdt[num].base_low    = (base & 0xFFFF);
-    gdt[num].base_middle = (base >> 16) & 0xFF;
-    gdt[num].base_high   = (base >> 24) & 0xFF;
-    gdt[num].limit_low   = (limit & 0xFFFF);
-    gdt[num].granularity = (limit >> 16) & 0x0F;
-    gdt[num].granularity |= (gran & 0xF0);
-    gdt[num].access      = access;
-}
-
-void gdt_init() {
-    gp.limit = (sizeof(struct gdt_entry) * 5) - 1;
-    gp.base  = (uint32_t)&gdt;
-
-    gdt_set_gate(0, 0, 0, 0, 0);                
-    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); 
-    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); 
-    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); 
-    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); 
-
-    __asm__ volatile("lgdt (%0)" : : "r" (&gp));
-}
 
 void vga_putc(char c, uint8_t color) {
     if (c == '\n') {
@@ -90,16 +83,59 @@ void vga_clear() {
     y = 0;
 }
 
+void gdt_set_gate(int num, uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) {
+    gdt[num].base_low    = (base & 0xFFFF);
+    gdt[num].base_middle = (base >> 16) & 0xFF;
+    gdt[num].base_high   = (base >> 24) & 0xFF;
+    gdt[num].limit_low   = (limit & 0xFFFF);
+    gdt[num].granularity = (limit >> 16) & 0x0F;
+    gdt[num].granularity |= (gran & 0xF0);
+    gdt[num].access      = access;
+}
+
+void gdt_init() {
+    gp.limit = (sizeof(struct gdt_entry) * 5) - 1;
+    gp.base  = (uint32_t)&gdt;
+
+    gdt_set_gate(0, 0, 0, 0, 0);                
+    gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); 
+    gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0xCF); 
+    gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); 
+    gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); 
+
+    __asm__ volatile("lgdt (%0)" : : "r" (&gp));
+}
+
+void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags) {
+    idt[num].base_lo = (base & 0xFFFF);
+    idt[num].base_hi = (base >> 16) & 0xFFFF;
+    idt[num].sel     = sel;
+    idt[num].always0 = 0;
+    idt[num].flags   = flags;
+}
+
+void idt_init() {
+    ip.limit = (sizeof(struct idt_entry) * 256) - 1;
+    ip.base  = (uint32_t)&idt;
+
+    for(int i = 0; i < 256; i++) {
+        idt_set_gate(i, 0, 0x08, 0x8E);
+    }
+
+    __asm__ volatile("lidt (%0)" : : "r" (&ip));
+}
+
 void kernel_main() {
     gdt_init();
+    idt_init();
     vga_clear();
 
-    vga_puts("TurkOS v0.1.1\n", 0x0C);
-    vga_puts("Core: GDT Initialized\n", 0x0A);
-    vga_puts("Arch: x86 Protected Mode\n", 0x0B);
-    vga_puts("License: Apache 2.0 (TurkOS Team)\n\n", 0x07);
+    vga_puts("TurkOS v0.1.2 Deployment\n", 0x0C);
+    vga_puts("System: x86 Protected Mode Active\n", 0x0A);
+    vga_puts("Memory: GDT Segmentation Success\n", 0x0A);
+    vga_puts("Interrupts: IDT Gates Ready\n", 0x0A);
     
-    vga_puts("System status: Ready.\n", 0x0F);
+    vga_puts("\nWaiting for hardware signals...\n", 0x0F);
 
     while (1) {
         __asm__ volatile("hlt");
