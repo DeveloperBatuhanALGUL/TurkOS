@@ -1,28 +1,40 @@
-ENTRY(_start)
+/* ========================================================================
+   TurkOS - BAĞLAYICI BETİĞİ (LINKER SCRIPT)
+   Tanım: Çekirdek bileşenlerinin bellekteki yerleşim düzenini belirler.
+   Yazar: Batuhan ALGÜL & TurkOS Geliştirme Ekibi
+   Tarih: 2026
+   ======================================================================== */
+
+ENTRY(_start) /* Giriş noktası: boot.s içindeki _start etiketi */
 
 SECTIONS
 {
+    /* Çekirdeği 1MB adresinden başlat (Multiboot gereği) */
     . = 1M;
 
-    .text BLOCK(4K) : ALIGN(4K)
+    /* Metin bölümü (Kod) */
+    .text : ALIGN(4K)
     {
-        *(.multiboot)
-        *(.text)
+        *(.multiboot)      /* Multiboot başlığı en başta olmalı */
+        *(.text*)          /* Tüm kod bölümleri */
     }
 
-    .rodata BLOCK(4K) : ALIGN(4K)
+    /* Salt okunur veri */
+    .rodata : ALIGN(4K)
     {
-        *(.rodata)
+        *(.rodata*)        /* Sabit veriler */
     }
 
-    .data BLOCK(4K) : ALIGN(4K)
+    /* Okunur-yazılır veri */
+    .data : ALIGN(4K)
     {
-        *(.data)
+        *(.data*)          /* Başlatılmış global değişkenler */
     }
 
-    .bss BLOCK(4K) : ALIGN(4K)
+    /* Sıfırlanmış veri (BSS) */
+    .bss : ALIGN(4K)
     {
-        *(COMMON)
-        *(.bss)
+        *(COMMON)          /* Ortak semboller */
+        *(.bss*)           /* Başlatılmamış global değişkenler */
     }
 }
