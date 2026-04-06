@@ -4,6 +4,7 @@
 ![Mimari](https://img.shields.io/badge/Mimari-x86__64-orange)
 ![Durum](https://img.shields.io/badge/Durum-Geliştirme%20Aşamasında-red)
 ![Dil](https://img.shields.io/badge/Dil-C_%7C_ASM-yellow)
+![İmza](https://img.shields.io/badge/İmza-Batuhan_ALGÜL-purple)
 
 > **"Bağımsız Türkiye'nin Bağımsız Çekirdeği."**
 > *Türk Milleti'nin siber egemenliği için tasarlanmış, denetlenebilir, yerli ve milli ilk açık kaynak işletim sistemi.*
@@ -105,17 +106,25 @@ TurkOS, katmanlı ve modüler bir mimari üzerine inşa edilmiştir. Aşağıdak
 
 ---
 
-## 3. GELİŞTİRİCİ İMZASI VE GÜVENLİK DENETİMİ
+## 3. GELİŞTİRİCİ İMZASI VE MATEMATİKSEL DOĞRULAMA
 
 TurkOS, çekirdek bütünlüğünü ve geliştirici kimliğini doğrulamak için özel bir **Matematiksel İmza Algoritması** kullanır. Bu algoritma, `Kernel.c` içinde gömülü olarak bulunur ve sistem açıldığında ekrana basılır.
 
-### 3.1. İmza Denklemi
+### 3.1. İmza Denklemi (The Signature Equation)
 
-Geliştirici ismi (`Batuhan ALGÜL`) aşağıdaki polinom fonksiyonu ile işlenir:
+Geliştirici ismi (`Batuhan ALGÜL`) aşağıdaki polinom fonksiyonu ile işlenerek benzersiz bir hash değeri üretilir. Bu değer, çekirdeğin değiştirilmediğini kanıtlayan dijital parmak izidir.
 
-$$ Hash = \sum_{i=0}^{n} (ASCII(char_i) \times i^2) \oplus (Hash << 5) $$
+$$
+Hash = \left( \sum_{i=0}^{n} (ASCII(char_i) \times i^2) \right) \oplus (Hash \ll 5)
+$$
 
-Bu işlem sonucunda üretilen benzersiz hex kodu, çekirdeğin değiştirilmediğini kanıtlar.
+**Denklem Açıklaması:**
+*   $char_i$: Geliştirici ismindeki i. karakterin ASCII değeri.
+*   $i^2$: Karakterin pozisyonunun karesi (polinom ağırlıklandırma).
+*   $\oplus$: Bitwise XOR işlemi.
+*   $\ll 5$: 5 bit sola kaydırma (bit karıştırma).
+
+Bu işlem sonucunda üretilen hex kodu (örn: `0x7F3A9B2C`), boot ekranında **"VERIFIED"** etiketiyle görüntülenir.
 
 ### 3.2. Güvenlik Katmanları
 
@@ -176,7 +185,7 @@ Proje, temiz mimari (Clean Architecture) prensiplerine yakın bir dizin yapısı
 TurkOS/
 ├── src/
 │   ├── boot.s                # Önyükleme Assembly kodu
-│   ├── Kernel.c              # Ana çekirdek dosyası
+│   ├── Kernel.c              # Ana çekirdek dosyası (İmza Denklemi Burada)
 │   ├── keyboard.c            # PS/2 Klavye sürücüsü
 │   ├── timer.c               # PIT Zamanlayıcı sürücüsü
 │   ├── interrupts.s          # Kesme vektörleri
@@ -297,11 +306,18 @@ Detaylar için `[LICENSE](LICENSE)` dosyasını inceleyiniz.
 
 ## 10. İLETİŞİM VE KATKIDA BULUNANLAR
 
-### 10.1. Proje Lideri
+### 10.1. Proje Lideri ve Mimari Tasarım
 
-**Batuhan ALGÜL**  
-*Kıdemli Geliştirici & Sistem Mimarı*  
-[GitHub](https://github.com/DeveloperBatuhanALGUL) | [LinkedIn](#) | [E-posta](mailto:batuhanalgul@proton.me)
+<div align="center">
+
+| **Batuhan ALGÜL** |
+| :---: |
+| *Kıdemli Geliştirici & Sistem Mimarı* |
+| [![GitHub](https://img.shields.io/badge/GitHub-DeveloperBatuhanALGUL-black?style=for-the-badge&logo=github)](https://github.com/DeveloperBatuhanALGUL) |
+| [![LinkedIn](https://img.shields.io/badge/LinkedIn-Batuhan_ALGÜL-blue?style=for-the-badge&logo=linkedin)](#) |
+| [![E-posta](https://img.shields.io/badge/E--posta-batuhanalgul@proton.me-red?style=for-the-badge&logo=gmail)](mailto:batuhanalgul@proton.me) |
+
+</div>
 
 ### 10.2. Katkıda Bulunanlar
 
