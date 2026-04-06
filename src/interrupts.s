@@ -1,6 +1,7 @@
 ; ========================================================================
 ; TurkOS - KESME VEKTÖRLERİ (INTERRUPT VECTORS)
 ; Tanım: Her bir kesme numarası için giriş noktası sağlar.
+; İmza: Batuhan ALGÜL [Hash: 0x7F3A9B2C]
 ; Yazar: Batuhan ALGÜL & TurkOS Geliştirme Ekibi
 ; Tarih: 2026
 ; ========================================================================
