@@ -379,3 +379,76 @@ void kernel_main() {
         __asm__ volatile("hlt");
     }
 }
+
+#include "include/dosya_sistemi.h"
+
+
+void kernel_main() {
+   
+    gdt_init();
+    idt_init();
+    vga_clear();
+    memory_init();
+
+   
+    const char* gelistirici_ismi = "Batuhan ALGÜL";
+    uint32_t imza_hash = hesapla_gelistirici_imzasi(gelistirici_ismi);
+
+    vga_puts("================================================\n", COLOR_LIGHT_CYAN);
+    vga_puts("   TURKOS KERNEL v0.2.0 [ANADOLU CORE]\n", COLOR_YELLOW);
+    vga_puts("================================================\n", COLOR_LIGHT_CYAN);
+    
+    vga_puts("\n[BOOT] System Initialized...\n", COLOR_LIGHT_GREEN);
+    vga_puts("[AUTH] Developer Identity Verification:\n", COLOR_LIGHT_MAGENTA);
+    vga_puts("       Name: ", COLOR_WHITE);
+    vga_puts(gelistirici_ismi, COLOR_YELLOW);
+    vga_puts("\n       Sign: ", COLOR_WHITE);
+    print_hex(imza_hash);
+    vga_puts(" (VERIFIED)\n", COLOR_LIGHT_GREEN);
+
+   
+    vga_puts("\n[IRQ ] Initializing Interrupt Descriptor Table...\n", COLOR_LIGHT_MAGENTA);
+    islemci_kesme_baslat();
+    
+    vga_puts("[TIME] Starting Programmable Interval Timer (100Hz)...\n", COLOR_LIGHT_MAGENTA);
+    timer_init(100);
+
+   
+    vga_puts("\n[VFS ] Initializing Virtual File System...\n", COLOR_LIGHT_MAGENTA);
+    vfs_baslat();
+    
+    
+    int fd = vfs_dosya_ac("/test.txt", MOD_YAZMA | MOD_OKUMA);
+    if (fd >= 0) {
+        const char* veri = "TurkOS VFS Test Verisi";
+        vfs_dosya_yaz(fd, veri, strlen(veri));
+        vfs_dosya_kapat(fd);
+        vga_puts("[VFS ] Test file created and written successfully.\n", COLOR_LIGHT_GREEN);
+    } else {
+        vga_puts("[VFS ] Error creating test file.\n", COLOR_LIGHT_RED);
+    }
+
+    vga_puts("\n------------------------------------------------\n", COLOR_LIGHT_CYAN);
+    vga_puts(" SYSTEM READY. WAITING FOR INPUT...\n", COLOR_LIGHT_GREEN);
+    vga_puts("------------------------------------------------\n\n", COLOR_LIGHT_CYAN);
+
+    
+    while (1) {
+        __asm__ volatile("hlt");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
