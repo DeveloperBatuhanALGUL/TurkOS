@@ -1,6 +1,7 @@
 /* ========================================================================
    TurkOS - KESME YÖNETİCİSİ (INTERRUPT MANAGER)
    Tanım: Donanım kesmelerini işleyen merkezi C fonksiyonu.
+   İmza: Batuhan ALGÜL [Hash: 0x7F3A9B2C]
    Yazar: Batuhan ALGÜL & TurkOS Geliştirme Ekibi
    Tarih: 2026
    ======================================================================== */
