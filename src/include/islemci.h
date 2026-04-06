@@ -1,6 +1,7 @@
 /* ========================================================================
    TurkOS - İŞLEMCİ VE KESME BAŞLIKLARI
    Tanım: C ve Assembly arasında kesme yönetimi için gerekli tanımlamalar.
+   İmza: Batuhan ALGÜL [Hash: 0x7F3A9B2C]
    Yazar: Batuhan ALGÜL & TurkOS Geliştirme Ekibi
    Tarih: 2026
    ======================================================================== */
