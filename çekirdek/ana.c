@@ -3,6 +3,7 @@
 #include "../donanım/kkt/kesme_kapisi.h"
 #include "../donanım/zaman/zamanlayıcı.h"
 #include "../bellek/sayfalama.h"
+#include "../bellek/yığın_yönetici.h"
 
 void cekirdek_ana(void)
 {
@@ -12,6 +13,9 @@ void cekirdek_ana(void)
 
     sayfalama_baslat();
     goruntu_yaz("Sayfalama Etkin\n");
+
+    yigin_baslat();
+    goruntu_yaz("Yigin Hazir\n");
 
     idt_baslat();
     klavye_baslat();
