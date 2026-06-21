@@ -1,6 +1,6 @@
 # TURKOS: ULUSAL AÇIK KAYNAK İŞLETİM SİSTEMİ
 
-![Lisans](https://img.shields.io/badge/Lisans-Apache%202.0-blue)
+![Lisans](https://img.shields.io/badge/Lisans-Egitim%20Amacli%20%7C%20Ticari%20Izin%20Gerekli-critical)
 ![Mimari](https://img.shields.io/badge/Mimari-x86__64-orange)
 ![Durum](https://img.shields.io/badge/Durum-Geliştirme%20Aşamasında-red)
 ![Dil](https://img.shields.io/badge/Dil-C_%7C_ASM-yellow)
@@ -145,10 +145,10 @@ TurkOS çekirdeği, minimalizm ve hız odaklı tasarlanmıştır. Aşağıdaki t
 
 | İşlem | Süre (ns) | Durum |
 | :--- | :--- | :--- |
-| `sys_write` (VGA) | ~120 ns | ✅ Optimize Edilmiş |
-| `sys_read` (Keyboard) | ~450 ns | ✅ IRQ Tabanlı |
-| `context_switch` | ~800 ns | ✅ Hızlı Geçiş |
-| `malloc` (Heap) | ~150 ns | ✅ Blok Tabanlı |
+| `sys_write` (VGA) | ~120 ns | Optimize Edilmiş |
+| `sys_read` (Keyboard) | ~450 ns | IRQ Tabanlı |
+| `context_switch` | ~800 ns | Hızlı Geçiş |
+| `malloc` (Heap) | ~150 ns | Blok Tabanlı |
 
 ### 4.2. Bellek Kullanımı
 
@@ -197,7 +197,7 @@ TurkOS/
 ├── linker.ld                 # Bağlayıcı betiği (Linker Script)
 ├── Makefile                  # Derleme otomasyonu
 ├── README.md                 # Bu dosya
-└── LICENSE                   # Apache 2.0 Lisansı
+└── LICENSE                   # TurkOS Lisansı (Egitim Amaçlı, Ticari İzin Gerekli)
 ```
 
 ---
@@ -260,7 +260,7 @@ Projeye katkı sağlayacak tüm geliştiricilerin aşağıdaki ilkeleri benimsem
 ### 8.1. Kod Kalitesi Standartları
 
 *   **Linux Kernel Coding Style:** Girintiler, parantez kullanımı ve isimlendirme bu standarda uyacaktır.
-*   **Yorumlama:** Her fonksiyon ve karmaşık mantık bloğu Türkçe ve İngilizce olarak yorumlanmalıdır.
+*   **Yorumlama:** Kod içinde yorum satırı kullanılmaz; isimlendirme açıklayıcı olmalıdır.
 *   **Güvenlik:** `gets`, `strcpy` gibi güvensiz fonksiyonların kullanımı yasaktır.
 *   **Portability:** Kod, sadece x86_64 mimarisine özel olmalı, diğer mimariler için `#ifdef` kullanılmalıdır.
 
@@ -293,12 +293,11 @@ Closes #42
 
 ## 9. LİSANSLAMA
 
-Bu proje **Apache License 2.0** kapsamında lisanslanmıştır. Ticari ve ticari olmayan tüm kullanımlara açıktır.
+Bu proje **TurkOS Lisansı** kapsamında lisanslanmıştır. Eğitim ve kişisel/akademik kullanıma açıktır; ticari kullanım için yazılı izin alınması zorunludur.
 
-*   **Ticari Kullanım:** ✅ İzinli
-*   **Değiştirme:** ✅ İzinli
-*   **Dağıtma:** ✅ İzinli
-*   **Patent Hakkı:** ✅ Korunur
+*   **Ticari Kullanım:** Yazılı izin gereklidir
+*   **Değiştirme:** İzinli (eğitim/akademik amaçlı)
+*   **Dağıtma:** İzinli (eğitim/akademik amaçlı)
 
 Detaylar için `[LICENSE](LICENSE)` dosyasını inceleyiniz.
 
@@ -329,8 +328,8 @@ Detaylar için `[LICENSE](LICENSE)` dosyasını inceleyiniz.
 
 | Faz | Hedef | Tamamlanma Tarihi |
 | :--- | :--- | :--- |
-| **Faz 1** | Bootloader, GDT/IDT, VGA, Klavye | ✅ Tamamlandı (v0.1.2) |
-| **Faz 2** | Kesme Yöneticisi, Timer, Memory Manager | 🚧 Devam Ediyor (v0.2.0) |
+| **Faz 1** | Bootloader, GDT/IDT, VGA, Klavye | Tamamlandı (v0.1.2) |
+| **Faz 2** | Kesme Yöneticisi, Timer, Memory Manager | Devam Ediyor (v0.2.0) |
 | **Faz 3** | Dosya Sistemi (FAT32/ext2), Shell | Q4 2026 |
 | **Faz 4** | Ağ Sürücüsü (TCP/IP Stack) | Q2 2027 |
 | **Faz 5** | Grafik Arayüz (GUI) & Window Manager | Q4 2027 |
