@@ -6,6 +6,7 @@ static struct idt_isaretci idt_ptr;
 static void (*kesme_isleyicileri[256])(void);
 
 extern void idt_yukle(unsigned int);
+extern void irq0_giris(void);
 extern void irq1_giris(void);
 
 void idt_kapi_ayarla(int numara, unsigned int konum)
@@ -54,6 +55,7 @@ void idt_baslat(void)
     for (int i = 0; i < 256; i++)
         idt_kapi_ayarla(i, 0);
 
+    idt_kapi_ayarla(32, (unsigned int)irq0_giris);
     idt_kapi_ayarla(33, (unsigned int)irq1_giris);
 
     pic_yenidenharita();

@@ -17,3 +17,16 @@ push $33
 call kesme_gonder
 add $4, %esp
 ret
+
+.global irq0_giris
+irq0_giris:
+pusha
+call irq0_cagir
+popa
+iret
+
+irq0_cagir:
+push $32
+call kesme_gonder
+add $4, %esp
+ret

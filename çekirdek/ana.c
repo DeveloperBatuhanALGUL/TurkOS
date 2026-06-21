@@ -1,6 +1,7 @@
 #include "../sürücüler/görüntü.h"
 #include "../sürücüler/klavye.h"
 #include "../donanım/kkt/kesme_kapisi.h"
+#include "../donanım/zaman/zamanlayıcı.h"
 
 void cekirdek_ana(void)
 {
@@ -10,6 +11,7 @@ void cekirdek_ana(void)
 
     idt_baslat();
     klavye_baslat();
+    zamanlayici_baslat(100);
 
     __asm__ volatile ("sti");
 
