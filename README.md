@@ -69,8 +69,8 @@ graph LR
 | Heap allocator (`kmalloc`/`kfree` with coalescing) | Implemented |
 | PIT timer + PS/2 keyboard (IRQ0/IRQ1) | Implemented |
 | VGA text-mode driver | Implemented |
-| Process management / scheduler | Not started |
-| Syscall interface | Not started |
+| Process management / scheduler | Cooperative task switching implemented; preemptive scheduling not started |
+| Syscall interface (int 0x80) | Implemented |
 | Filesystem | Not started |
 | Shell | Not started |
 | Any form of sandboxing/isolation | Not started |
