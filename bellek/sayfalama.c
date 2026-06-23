@@ -16,9 +16,9 @@ void sayfalama_baslat(void)
         for (int g = 0; g < GIRDI_SAYISI; g++)
         {
             unsigned int fiziksel_adres = (t * GIRDI_SAYISI + g) * SAYFA_BOYUTU;
-            sayfa_tablolari[t][g] = fiziksel_adres | 0x3;
+            sayfa_tablolari[t][g] = fiziksel_adres | 0x7;
         }
-        sayfa_dizini[t] = ((unsigned int)sayfa_tablolari[t]) | 0x3;
+        sayfa_dizini[t] = ((unsigned int)sayfa_tablolari[t]) | 0x7;
     }
 
     for (int t = ESLENEN_MB; t < GIRDI_SAYISI; t++)
