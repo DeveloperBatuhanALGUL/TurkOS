@@ -7,16 +7,27 @@
 #include "../bellek/yığın_yönetici.h"
 #include "kullanici_modu.h"
 #include "gorev.h"
+#include "denetim/denetim_otobusu.h"
+#include "denetim/gorev_denetleyici.h"
 
 static unsigned char gorev_a_yigini[4096] __attribute__((aligned(16)));
 static unsigned char gorev_b_yigini[4096] __attribute__((aligned(16)));
 
 void gorev_a_fonksiyon(void)
 {
+    int sayac = 0;
     for (;;)
     {
         goruntu_yaz("A");
         gorev_yield();
+        sayac++;
+        if (sayac == 5)
+        {
+            denetim_gunlugu_yazdir();
+            goruntu_yaz("Alarm Sayisi: ");
+            goruntu_yaz_hex(denetim_alarm_sayisi());
+            goruntu_yaz("\n");
+        }
     }
 }
 
@@ -48,6 +59,9 @@ void cekirdek_ana(void)
     zamanlayici_baslat(100);
 
     __asm__ volatile ("sti");
+
+    denetim_otobusu_baslat();
+    gorev_denetleyici_baslat();
 
     goruntu_yaz("Gorev Degisimi Deneniyor: ");
 
