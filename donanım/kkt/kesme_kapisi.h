@@ -16,6 +16,7 @@ struct idt_isaretci {
 
 void idt_baslat(void);
 void idt_kapi_ayarla(int numara, unsigned int konum);
+void idt_kapi_ayarla_kullanici(int numara, unsigned int konum);
 void kesme_yoneticisi_kaydet(int numara, void (*isleyici)(void));
 
 #endif

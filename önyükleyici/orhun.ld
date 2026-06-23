@@ -4,5 +4,8 @@ SECTIONS
 . = 1M;
 .multiboot : { *(.multiboot) }
 .text : { *(.text) }
-.bss : { *(.bss) }
+.rodata : { *(.rodata*) }
+.data : { *(.data) }
+.bss : { *(.bss) *(COMMON) }
+/DISCARD/ : { *(.comment) *(.eh_frame) *(.note*) *(.got*) }
 }

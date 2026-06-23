@@ -8,6 +8,7 @@ static void (*kesme_isleyicileri[256])(void);
 extern void idt_yukle(unsigned int);
 extern void irq0_giris(void);
 extern void irq1_giris(void);
+extern void int80_giris(void);
 
 #define ISTISNA_DISARI(n) extern void isr##n##_giris(void);
 ISTISNA_DISARI(0) ISTISNA_DISARI(1) ISTISNA_DISARI(2) ISTISNA_DISARI(3)
@@ -36,6 +37,15 @@ void idt_kapi_ayarla(int numara, unsigned int konum)
     idt[numara].secici = 0x08;
     idt[numara].sifir = 0;
     idt[numara].bayrak = 0x8E;
+    idt[numara].ust = (konum >> 16) & 0xFFFF;
+}
+
+void idt_kapi_ayarla_kullanici(int numara, unsigned int konum)
+{
+    idt[numara].alt = konum & 0xFFFF;
+    idt[numara].secici = 0x08;
+    idt[numara].sifir = 0;
+    idt[numara].bayrak = 0xEE;
     idt[numara].ust = (konum >> 16) & 0xFFFF;
 }
 
@@ -81,6 +91,7 @@ void idt_baslat(void)
 
     idt_kapi_ayarla(32, (unsigned int)irq0_giris);
     idt_kapi_ayarla(33, (unsigned int)irq1_giris);
+    idt_kapi_ayarla_kullanici(0x80, (unsigned int)int80_giris);
 
     pic_yenidenharita();
     idt_yukle((unsigned int)&idt_ptr);
