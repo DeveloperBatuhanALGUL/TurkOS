@@ -38,3 +38,18 @@ void goruntu_yaz(const char *metin)
         metin++;
     }
 }
+
+void goruntu_yaz_hex(unsigned int deger)
+{
+    const char basamaklar[] = "0123456789ABCDEF";
+    char arabellek[11];
+
+    arabellek[0] = '0';
+    arabellek[1] = 'x';
+    arabellek[10] = '\0';
+
+    for (int i = 0; i < 8; i++)
+        arabellek[9 - i] = basamaklar[(deger >> (i * 4)) & 0xF];
+
+    goruntu_yaz(arabellek);
+}

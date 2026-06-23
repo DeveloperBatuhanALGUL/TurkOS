@@ -3,5 +3,6 @@
 
 void goruntu_temizle(void);
 void goruntu_yaz(const char *metin);
+void goruntu_yaz_hex(unsigned int deger);
 
 #endif
