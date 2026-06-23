@@ -1,4 +1,5 @@
 #include "gorev.h"
+#include "denetim/gorev_denetleyici.h"
 
 extern void gorev_degistir(unsigned int *eski_esp_adresi, unsigned int yeni_esp);
 
@@ -42,5 +43,6 @@ void gorev_yield(void)
     gorev_t *yeni = simdiki->sonraki;
     simdiki = yeni;
 
+    gorev_denetleyici_gecis_bildir(eski, yeni);
     gorev_degistir(&eski->esp, yeni->esp);
 }
