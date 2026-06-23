@@ -50,6 +50,24 @@ void *kmalloc(unsigned int boyut)
     return 0;
 }
 
+static void bloklari_birlestir(void)
+{
+    struct blok_basligi *gezici = ilk_blok;
+
+    while (gezici && gezici->sonraki)
+    {
+        if (!gezici->kullanimda && !gezici->sonraki->kullanimda)
+        {
+            gezici->boyut += sizeof(struct blok_basligi) + gezici->sonraki->boyut;
+            gezici->sonraki = gezici->sonraki->sonraki;
+        }
+        else
+        {
+            gezici = gezici->sonraki;
+        }
+    }
+}
+
 void kfree(void *blok)
 {
     if (!blok)
@@ -58,4 +76,6 @@ void kfree(void *blok)
     struct blok_basligi *baslik =
         (struct blok_basligi *)((unsigned char *)blok - sizeof(struct blok_basligi));
     baslik->kullanimda = 0;
+
+    bloklari_birlestir();
 }
