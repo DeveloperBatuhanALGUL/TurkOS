@@ -91,3 +91,14 @@ ISTISNA_HATASIZ 28
 ISTISNA_HATASIZ 29
 ISTISNA_HATASIZ 30
 ISTISNA_HATASIZ 31
+
+.extern sistem_cagrisi_isleyici
+.global int80_giris
+int80_giris:
+pusha
+push %ebx
+push %eax
+call sistem_cagrisi_isleyici
+add $8, %esp
+popa
+iret

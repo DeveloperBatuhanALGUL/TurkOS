@@ -2,7 +2,7 @@
 .set BAYRAK, 0x0
 .set SAGLAMA, -(MAGIC + BAYRAK)
 
-.section .multiboot
+.section .multiboot, "a"
 .align 4
 .long MAGIC
 .long BAYRAK
