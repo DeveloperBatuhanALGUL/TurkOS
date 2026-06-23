@@ -5,6 +5,10 @@
 #include "../donanım/zaman/zamanlayıcı.h"
 #include "../bellek/sayfalama.h"
 #include "../bellek/yığın_yönetici.h"
+#include "kullanici_modu.h"
+
+static unsigned char cekirdek_yigini[4096] __attribute__((aligned(16)));
+static unsigned char kullanici_yigini[4096] __attribute__((aligned(16)));
 
 void cekirdek_ana(void)
 {
@@ -25,6 +29,11 @@ void cekirdek_ana(void)
     zamanlayici_baslat(100);
 
     __asm__ volatile ("sti");
+
+    tss_yigin_ayarla((unsigned int)(cekirdek_yigini + sizeof(cekirdek_yigini)));
+    goruntu_yaz("Ring3 Gecisi Deneniyor\n");
+
+    kullanici_moduna_atla(kullanici_testi, (unsigned int)(kullanici_yigini + sizeof(kullanici_yigini)));
 
     for (;;)
         ;
