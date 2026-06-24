@@ -5,6 +5,7 @@
  */
 #include "istisnalar.h"
 #include "panik.h"
+#include "denetim/kesme_denetleyici.h"
 
 static const char *istisna_adlari[20] = {
     "Sifira Bolme (Divide By Zero)",
@@ -39,6 +40,8 @@ static inline unsigned int cr2_oku(void)
 void istisna_isleyici(unsigned int numara, unsigned int kod)
 {
     const char *isim = (numara < 20) ? istisna_adlari[numara] : "Bilinmeyen Istisna";
+
+    kesme_denetleyici_istisna_bildir(numara, kod);
 
     if (numara == 14)
         panik(isim, cr2_oku());
