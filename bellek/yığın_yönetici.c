@@ -1,4 +1,5 @@
 #include "yığın_yönetici.h"
+#include "../çekirdek/denetim/bellek_denetleyici.h"
 
 #define YIGIN_BOYUTU (4 * 1024 * 1024)
 
@@ -42,11 +43,14 @@ void *kmalloc(unsigned int boyut)
             }
 
             gezici->kullanimda = 1;
-            return (unsigned char *)gezici + sizeof(struct blok_basligi);
+            void *adres = (unsigned char *)gezici + sizeof(struct blok_basligi);
+            bellek_denetleyici_tahsis_bildir(adres, boyut);
+            return adres;
         }
         gezici = gezici->sonraki;
     }
 
+    bellek_denetleyici_tahsis_bildir(0, boyut);
     return 0;
 }
 
@@ -72,6 +76,8 @@ void kfree(void *blok)
 {
     if (!blok)
         return;
+
+    bellek_denetleyici_serbest_bildir(blok);
 
     struct blok_basligi *baslik =
         (struct blok_basligi *)((unsigned char *)blok - sizeof(struct blok_basligi));

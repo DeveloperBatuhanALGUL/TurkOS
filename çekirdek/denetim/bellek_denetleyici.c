@@ -1,0 +1,77 @@
+#include "bellek_denetleyici.h"
+#include "denetim_otobusu.h"
+
+#define TAKIP_LIMITI 64
+
+static void *takip_adresleri[TAKIP_LIMITI];
+static unsigned int takip_boyutlari[TAKIP_LIMITI];
+static unsigned int takip_dolu[TAKIP_LIMITI];
+static unsigned int acik_tahsis_sayisi = 0;
+static unsigned int toplam_tahsis_edilen = 0;
+
+void bellek_denetleyici_baslat(void)
+{
+    for (unsigned int i = 0; i < TAKIP_LIMITI; i++)
+        takip_dolu[i] = 0;
+    acik_tahsis_sayisi = 0;
+    toplam_tahsis_edilen = 0;
+}
+
+static int bos_yuva_bul(void)
+{
+    for (unsigned int i = 0; i < TAKIP_LIMITI; i++)
+        if (!takip_dolu[i])
+            return (int)i;
+    return -1;
+}
+
+static int adres_yuvasi_bul(void *adres)
+{
+    for (unsigned int i = 0; i < TAKIP_LIMITI; i++)
+        if (takip_dolu[i] && takip_adresleri[i] == adres)
+            return (int)i;
+    return -1;
+}
+
+void bellek_denetleyici_tahsis_bildir(void *adres, unsigned int boyut)
+{
+    if (!adres)
+    {
+        denetim_olay_bildir(DENETIM_KAYNAK_BELLEK, DENETIM_SEVIYE_SUPHELI, 1, boyut);
+        return;
+    }
+
+    int yuva = bos_yuva_bul();
+    if (yuva < 0)
+    {
+        denetim_olay_bildir(DENETIM_KAYNAK_BELLEK, DENETIM_SEVIYE_ALARM, 2, TAKIP_LIMITI);
+        return;
+    }
+
+    takip_adresleri[yuva] = adres;
+    takip_boyutlari[yuva] = boyut;
+    takip_dolu[yuva] = 1;
+    acik_tahsis_sayisi++;
+    toplam_tahsis_edilen++;
+}
+
+void bellek_denetleyici_serbest_bildir(void *adres)
+{
+    if (!adres)
+        return;
+
+    int yuva = adres_yuvasi_bul(adres);
+    if (yuva < 0)
+    {
+        denetim_olay_bildir(DENETIM_KAYNAK_BELLEK, DENETIM_SEVIYE_ALARM, 3, (unsigned int)(unsigned long)adres);
+        return;
+    }
+
+    takip_dolu[yuva] = 0;
+    acik_tahsis_sayisi--;
+}
+
+unsigned int bellek_denetleyici_acik_tahsis_sayisi(void)
+{
+    return acik_tahsis_sayisi;
+}

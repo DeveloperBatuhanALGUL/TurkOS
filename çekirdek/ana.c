@@ -9,6 +9,7 @@
 #include "gorev.h"
 #include "denetim/denetim_otobusu.h"
 #include "denetim/gorev_denetleyici.h"
+#include "denetim/bellek_denetleyici.h"
 
 static unsigned char gorev_a_yigini[4096] __attribute__((aligned(16)));
 static unsigned char gorev_b_yigini[4096] __attribute__((aligned(16)));
@@ -23,6 +24,10 @@ void gorev_a_fonksiyon(void)
         sayac++;
         if (sayac == 5)
         {
+            void *test_blok = kmalloc(64);
+            kfree(test_blok);
+            kfree(test_blok);
+
             denetim_gunlugu_yazdir();
             goruntu_yaz("Alarm Sayisi: ");
             goruntu_yaz_hex(denetim_alarm_sayisi());
@@ -62,6 +67,7 @@ void cekirdek_ana(void)
 
     denetim_otobusu_baslat();
     gorev_denetleyici_baslat();
+    bellek_denetleyici_baslat();
 
     goruntu_yaz("Gorev Degisimi Deneniyor: ");
 
