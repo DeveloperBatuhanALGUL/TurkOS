@@ -1,12 +1,16 @@
 # TurkOS
 
 <p align="center">
+  <img src="varliklar/batuss-logo.png" alt="Batuss" width="120">
+</p>
+
+<p align="center">
   <strong>A day will come, and a day will end.</strong>
 </p>
 
 <p align="center">
   <img alt="status" src="https://img.shields.io/badge/status-early%20development-orange">
-  <img alt="license" src="https://img.shields.io/badge/license-TBD-lightgrey">
+  <img alt="license" src="https://img.shields.io/badge/license-Source--Visible-blue">
   <img alt="arch" src="https://img.shields.io/badge/arch-x86%20(32--bit)-blue">
   <img alt="language" src="https://img.shields.io/badge/identifiers-öz%20Türkçe-red">
   <img alt="made in" src="https://img.shields.io/badge/made%20in-İstanbul%2C%20Türkiye-blueviolet">
@@ -199,3 +203,13 @@ Issues, PRs, and discussion are welcome. Code identifiers stay in Turkish; comme
 ---
 
 <p align="center"><em>A day will come, and a day will end.</em></p>
+
+
+## License / Lisans
+
+TurkOS is source-visible: anyone may read, fork, and submit Pull Requests. **Commercial use requires prior written permission from Batuss.** This Software and the TurkOS brand are ultimately and exclusively owned by the Batuss brand.
+
+TurkOS kaynak-görünür bir projedir: herkes kodu inceleyebilir, fork edebilir ve Pull Request gönderebilir. **Ticari kullanım için Batuss'tan önceden yazılı izin alınması şarttır.** Bu Yazılım ve TurkOS markası, nihai ve münhasır olarak Batuss markasına aittir.
+
+- Türkçe: [LICENSE.md](LICENSE.md)
+- English: [LICENSE.en.md](LICENSE.en.md)
