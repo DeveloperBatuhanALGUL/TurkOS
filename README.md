@@ -205,6 +205,18 @@ Issues, PRs, and discussion are welcome. Code identifiers stay in Turkish; comme
 <p align="center"><em>A day will come, and a day will end.</em></p>
 
 
+## Reality Check: Hardening the Patrol System / Gerceklik Kontrolu
+
+Three honest engineering challenges were raised about the patrol (devriye) design, and each one is addressed in code rather than left as a known limitation:
+
+**1. Polling race window** - the patrol originally only checked alarm counts every 50 ticks, leaving a window where a fast exploit could finish between checks. Fixed: denetim_otobusu.c now calls devriye_olay_bildirildi() immediately whenever any watcher raises an ALARM, so detection is event-driven, not just periodic. The periodic tick still runs for status logging, but the lockdown decision no longer waits for it.
+
+**2. False positives from noisy-but-harmless code** - a single buggy (not malicious) program repeatedly mis-allocating memory shouldn't be enough to lock down the whole system. Fixed: devriye.c tracks a rolling "suspicion count" that decays after SUPHE_SOGUMA_SURESI (200 ticks) of quiet. Only a sustained burst of alarms within that window crosses the lockdown threshold - isolated, spaced-out issues age out instead of accumulating forever.
+
+**3. Self-protection of the patrol's own state** - if an attacker could reach into kernel memory and patch devriye_kilitlendi_mi() to always return false, the whole mechanism would be worthless. Mitigated: lockdown state is stored as two variables (sistem_kilitli_a/b) where the second is an XOR-derived integrity tag of the first. devriye_kilitlendi_mi() checks this pairing on every call; if only one half was tampered with, the mismatch is detected and the system is forced into lockdown rather than trusting the corrupted value. This is a mitigation, not a full solution - real protection of Ring 0 memory ultimately requires write-protecting kernel data pages, which is on the longer-term roadmap.
+
+Bu uc nokta - yoklama bosluklari, yanlis alarmlar ve denetleyicinin kendisinin hedef olmasi - gercek bir cekirdek guvenlik katmaninin asmasi gereken donanim seviyesindeki zorluklardir. Yukaridaki degisiklikler bu sorunlari kagit uzerinde degil, kodda ele alir.
+
 ## Building / Derleme
 
 **macOS / Linux / WSL2:**

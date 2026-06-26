@@ -1,4 +1,5 @@
 #include "denetim_otobusu.h"
+#include "devriye.h"
 
 #define GUNLUK_BOYUTU 64
 #define DINLEYICI_LIMITI 8
@@ -42,6 +43,9 @@ void denetim_olay_bildir(denetim_kaynak_t kaynak, denetim_seviye_t seviye, unsig
 
     for (unsigned int i = 0; i < dinleyici_sayisi; i++)
         dinleyiciler[i](olay);
+
+    if (kaynak != DENETIM_KAYNAK_DEVRIYE && seviye == DENETIM_SEVIYE_ALARM)
+        devriye_olay_bildirildi();
 }
 
 unsigned int denetim_alarm_sayisi(void)
