@@ -9,9 +9,50 @@ export PYTHONIOENCODING=utf-8
 echo "=== Batuss Build Sistemi - TurkOS Derleyici ==="
 echo "UTF-8 ortam degiskenleri ayarlandi (LANG=$LANG)"
 
-command -v i686-elf-gcc >/dev/null 2>&1 || { echo "HATA: i686-elf-gcc bulunamadi. Once cross-compiler toolchain'i kurun."; exit 1; }
-command -v i686-elf-as  >/dev/null 2>&1 || { echo "HATA: i686-elf-as bulunamadi."; exit 1; }
-command -v i686-elf-ld  >/dev/null 2>&1 || { echo "HATA: i686-elf-ld bulunamadi."; exit 1; }
+kur_toolchain() {
+    echo "i686-elf cross-compiler toolchain bulunamadi, kurulum deneniyor..."
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        if command -v brew >/dev/null 2>&1; then
+            brew tap nativeos/i686-elf-toolchain 2>/dev/null || true
+            brew install i686-elf-binutils i686-elf-gcc || {
+                echo "HATA: Homebrew ile otomatik kurulum basarisiz."
+                echo "Manuel kurulum icin: https://wiki.osdev.org/GCC_Cross-Compiler"
+                exit 1
+            }
+        else
+            echo "HATA: Homebrew bulunamadi. Once https://brew.sh adresinden kurun."
+            exit 1
+        fi
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        if command -v apt-get >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo qemu-system-x86
+            echo "UYARI: apt repolarinda hazir i686-elf-gcc paketi olmayabilir."
+            echo "Bu durumda OSDev wiki'sindeki kaynaktan derleme talimatlarini izleyin:"
+            echo "https://wiki.osdev.org/GCC_Cross-Compiler"
+            exit 1
+        elif command -v pacman >/dev/null 2>&1; then
+            sudo pacman -S --needed base-devel qemu-system-x86 || true
+            echo "UYARI: i686-elf-gcc icin AUR'dan (i686-elf-gcc paketi) kurulum gerekebilir."
+            exit 1
+        else
+            echo "HATA: Desteklenmeyen paket yoneticisi. Manuel kurulum gerekli:"
+            echo "https://wiki.osdev.org/GCC_Cross-Compiler"
+            exit 1
+        fi
+    else
+        echo "HATA: Taninmayan isletim sistemi ($OSTYPE)."
+        echo "Windows kullaniyorsaniz, batuss-derle.bat dosyasini calistirip WSL2 uzerinden devam edin."
+        exit 1
+    fi
+}
+
+if ! command -v i686-elf-gcc >/dev/null 2>&1 || ! command -v i686-elf-as >/dev/null 2>&1 || ! command -v i686-elf-ld >/dev/null 2>&1; then
+    kur_toolchain
+fi
+
+command -v i686-elf-gcc >/dev/null 2>&1 || { echo "HATA: i686-elf-gcc kurulumdan sonra da bulunamadi."; exit 1; }
+command -v i686-elf-as  >/dev/null 2>&1 || { echo "HATA: i686-elf-as kurulumdan sonra da bulunamadi."; exit 1; }
+command -v i686-elf-ld  >/dev/null 2>&1 || { echo "HATA: i686-elf-ld kurulumdan sonra da bulunamadi."; exit 1; }
 
 mkdir -p derleme
 
@@ -60,6 +101,15 @@ echo "=== Derleme tamamlandi: derleme/turkos.elf ==="
 ls -la derleme/turkos.elf
 
 if [ "$1" == "--calistir" ]; then
+  command -v qemu-system-i386 >/dev/null 2>&1 || {
+      echo "HATA: qemu-system-i386 bulunamadi."
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+          echo "Kurulum icin: brew install qemu"
+      else
+          echo "Kurulum icin: sudo apt-get install qemu-system-x86 (veya dagitiminizin paket yoneticisi)"
+      fi
+      exit 1
+  }
   echo "--- QEMU baslatiliyor ---"
   qemu-system-i386 -kernel derleme/turkos.elf -display cocoa -d guest_errors -no-reboot -no-shutdown
 fi

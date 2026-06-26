@@ -60,6 +60,7 @@ static const char *kaynak_adi(denetim_kaynak_t kaynak)
         case DENETIM_KAYNAK_BELLEK: return "BELLEK";
         case DENETIM_KAYNAK_KESME: return "KESME";
         case DENETIM_KAYNAK_SISTEM_CAGRISI: return "SISTEM_CAGRISI";
+        case DENETIM_KAYNAK_DEVRIYE: return "DEVRIYE";
         default: return "BILINMEYEN";
     }
 }

@@ -1,12 +1,14 @@
 #include "zamanlayıcı.h"
 #include "../../ortak/bağlantı.h"
 #include "../kkt/kesme_kapisi.h"
+#include "../../çekirdek/denetim/devriye.h"
 
 static volatile unsigned int tik_sayaci = 0;
 
 static void zamanlayici_isleyici(void)
 {
     tik_sayaci++;
+    devriye_tik_bildir();
 }
 
 unsigned int zamanlayici_tik_sayisi(void)

@@ -205,6 +205,20 @@ Issues, PRs, and discussion are welcome. Code identifiers stay in Turkish; comme
 <p align="center"><em>A day will come, and a day will end.</em></p>
 
 
+## Building / Derleme
+
+**macOS / Linux / WSL2:**
+```bash
+./batuss-derle.sh --calistir
+```
+Requires the i686-elf cross-compiler toolchain and QEMU. The script checks for both and prints install instructions if missing; it also forces UTF-8 locale env vars so the Turkish-character file paths build consistently regardless of your shell's default locale.
+
+**Windows (native):**
+```
+batuss-derle.bat
+```
+This requires WSL2 (wsl --install in an admin PowerShell) and forwards the build into it automatically.
+
 ## License / Lisans
 
 TurkOS is source-visible: anyone may read, fork, and submit Pull Requests. **Commercial use requires prior written permission from Batuss.** This Software and the TurkOS brand are ultimately and exclusively owned by the Batuss brand.
