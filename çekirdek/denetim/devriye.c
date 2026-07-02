@@ -1,11 +1,18 @@
+/*
+ * TurkOS - Devriye Modulu / Patrol Module
+ * Telif Hakki (c) 2026 Batuhan ALGUL - Tum haklari saklidir.
+ * Copyright (c) 2026 Batuhan ALGUL - All rights reserved.
+ */
 #include "devriye.h"
 #include "denetim_otobusu.h"
 #include "bellek_denetleyici.h"
+#include "gorev_denetleyici.h"
 
 #define DEVRIYE_PERIYODU 50
 #define KILITLEME_ESIGI 3
 #define SUPHE_SOGUMA_SURESI 200
 #define BUTUNLUK_SABITI 0x42415455
+#define KARANTINA_DOYGUNLUK_TABAN 2
 
 static unsigned int devriye_tik_sayaci = 0;
 static unsigned int devriye_tur_sayisi = 0;
@@ -82,6 +89,25 @@ static void esik_kontrolu_yap(unsigned int tetikleyici_tik)
     }
 }
 
+static void doygunluk_kontrolu_yap(unsigned int tetikleyici_tik)
+{
+    unsigned int aktif = gorev_denetleyici_aktif_sayisi();
+    unsigned int karantina = gorev_denetleyici_karantina_sayisi();
+
+    if (aktif == 0)
+        return;
+
+    unsigned int esik = aktif / 2;
+    if (esik < KARANTINA_DOYGUNLUK_TABAN)
+        esik = KARANTINA_DOYGUNLUK_TABAN;
+
+    if (karantina >= esik)
+    {
+        denetim_olay_bildir(DENETIM_KAYNAK_DEVRIYE, DENETIM_SEVIYE_ALARM, tetikleyici_tik, karantina);
+        kilitle();
+    }
+}
+
 void devriye_olay_bildirildi(void)
 {
     if (sistem_kilitli_a)
@@ -94,6 +120,8 @@ void devriye_tik_bildir(void)
 {
     if (sistem_kilitli_a)
         return;
+
+    doygunluk_kontrolu_yap(devriye_tik_sayaci + (devriye_tur_sayisi * DEVRIYE_PERIYODU));
 
     devriye_tik_sayaci++;
 

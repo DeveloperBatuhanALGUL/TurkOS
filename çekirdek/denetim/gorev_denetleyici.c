@@ -1,3 +1,8 @@
+/*
+ * TurkOS - Gorev Denetleyici Modulu / Task Supervisor Module
+ * Telif Hakki (c) 2026 Batuhan ALGUL - Tum haklari saklidir.
+ * Copyright (c) 2026 Batuhan ALGUL - All rights reserved.
+ */
 #include "gorev_denetleyici.h"
 #include "denetim_otobusu.h"
 
@@ -85,4 +90,22 @@ void gorev_denetleyici_supheli_bildir(gorev_t *g)
         gorev_karantinaya_al(g);
         supheli_sayaclari[dizin] = 0;
     }
+}
+
+unsigned int gorev_denetleyici_aktif_sayisi(void)
+{
+    unsigned int sayac = 0;
+    for (unsigned int i = 0; i < izlenen_gorev_sayisi; i++)
+        if (izlenen_gorevler[i]->durum != GOREV_DURUM_SONLANDIRILDI)
+            sayac++;
+    return sayac;
+}
+
+unsigned int gorev_denetleyici_karantina_sayisi(void)
+{
+    unsigned int sayac = 0;
+    for (unsigned int i = 0; i < izlenen_gorev_sayisi; i++)
+        if (izlenen_gorevler[i]->durum == GOREV_DURUM_KARANTINA)
+            sayac++;
+    return sayac;
 }

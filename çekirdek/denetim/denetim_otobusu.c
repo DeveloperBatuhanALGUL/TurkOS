@@ -1,3 +1,8 @@
+/*
+ * TurkOS - Denetim Otobusu Modulu / Audit Bus Module
+ * Telif Hakki (c) 2026 Batuhan ALGUL - Tum haklari saklidir.
+ * Copyright (c) 2026 Batuhan ALGUL - All rights reserved.
+ */
 #include "denetim_otobusu.h"
 #include "devriye.h"
 
@@ -44,7 +49,7 @@ void denetim_olay_bildir(denetim_kaynak_t kaynak, denetim_seviye_t seviye, unsig
     for (unsigned int i = 0; i < dinleyici_sayisi; i++)
         dinleyiciler[i](olay);
 
-    if (kaynak != DENETIM_KAYNAK_DEVRIYE && seviye == DENETIM_SEVIYE_ALARM)
+    if (kaynak == DENETIM_KAYNAK_SISTEM_CAGRISI && seviye == DENETIM_SEVIYE_ALARM)
         devriye_olay_bildirildi();
 }
 
