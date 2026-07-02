@@ -77,6 +77,12 @@ void kfree(void *blok)
     if (!blok)
         return;
 
+    if (!bellek_denetleyici_serbest_izinli_mi(blok))
+    {
+        bellek_denetleyici_serbest_bildir(blok);
+        return;
+    }
+
     bellek_denetleyici_serbest_bildir(blok);
 
     struct blok_basligi *baslik =
