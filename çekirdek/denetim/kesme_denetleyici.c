@@ -1,5 +1,7 @@
 #include "kesme_denetleyici.h"
 #include "denetim_otobusu.h"
+#include "gorev_denetleyici.h"
+#include "../gorev.h"
 
 #define ISTISNA_LIMITI 32
 #define ESIK_TEKRAR_SAYISI 5
@@ -16,6 +18,13 @@ void kesme_denetleyici_baslat(void)
     ust_uste_sayac = 0;
 }
 
+static void ilgili_gorevi_bildir(void)
+{
+    gorev_t *g = gorev_su_anki();
+    if (g)
+        gorev_denetleyici_supheli_bildir(g);
+}
+
 void kesme_denetleyici_istisna_bildir(unsigned int numara, unsigned int kod)
 {
     if (numara < ISTISNA_LIMITI)
@@ -27,6 +36,7 @@ void kesme_denetleyici_istisna_bildir(unsigned int numara, unsigned int kod)
         if (ust_uste_sayac >= ESIK_TEKRAR_SAYISI)
         {
             denetim_olay_bildir(DENETIM_KAYNAK_KESME, DENETIM_SEVIYE_ALARM, numara, kod);
+            ilgili_gorevi_bildir();
             ust_uste_sayac = 0;
         }
         else
