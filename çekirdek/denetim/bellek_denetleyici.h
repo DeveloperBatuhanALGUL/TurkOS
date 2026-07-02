@@ -4,6 +4,8 @@
 void bellek_denetleyici_baslat(void);
 void bellek_denetleyici_tahsis_bildir(void *adres, unsigned int boyut);
 void bellek_denetleyici_serbest_bildir(void *adres);
+int bellek_denetleyici_serbest_izinli_mi(void *adres);
 unsigned int bellek_denetleyici_acik_tahsis_sayisi(void);
+unsigned int bellek_denetleyici_zehirli_sayisi(void);
 
 #endif
