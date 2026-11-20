@@ -1,3 +1,8 @@
+/*
+ * TurkOS - Goruntu Surucusu / VGA Text Display Driver
+ * Telif Hakki (c) 2026 Batuhan ALGUL - Tum haklari saklidir.
+ * Copyright (c) 2026 Batuhan ALGUL - All rights reserved.
+ */
 #include "görüntü.h"
 
 static volatile unsigned short *vga_bellek = (unsigned short *)0xB8000;
@@ -7,10 +12,32 @@ static const int GENISLIK = 80;
 static const int YUKSEKLIK = 25;
 static const unsigned char RENK = 0x0F;
 
+static void satir_temizle(int hedef)
+{
+    for (int i = 0; i < GENISLIK; i++)
+        vga_bellek[hedef * GENISLIK + i] = (RENK << 8) | ' ';
+}
+
+static void kaydir(void)
+{
+    for (int i = 0; i < GENISLIK * (YUKSEKLIK - 1); i++)
+        vga_bellek[i] = vga_bellek[i + GENISLIK];
+    satir_temizle(YUKSEKLIK - 1);
+    satir = YUKSEKLIK - 1;
+}
+
+static void alt_satira_gec(void)
+{
+    sutun = 0;
+    satir++;
+    if (satir >= YUKSEKLIK)
+        kaydir();
+}
+
 void goruntu_temizle(void)
 {
-    for (int i = 0; i < GENISLIK * YUKSEKLIK; i++)
-        vga_bellek[i] = (RENK << 8) | ' ';
+    for (int i = 0; i < YUKSEKLIK; i++)
+        satir_temizle(i);
     satir = 0;
     sutun = 0;
 }
@@ -20,20 +47,13 @@ void goruntu_yaz(const char *metin)
     while (*metin)
     {
         if (*metin == '\n')
-        {
-            satir++;
-            sutun = 0;
-        }
+            alt_satira_gec();
         else
         {
-            int konum = satir * GENISLIK + sutun;
-            vga_bellek[konum] = (RENK << 8) | *metin;
+            vga_bellek[satir * GENISLIK + sutun] = (RENK << 8) | (unsigned char)*metin;
             sutun++;
             if (sutun >= GENISLIK)
-            {
-                sutun = 0;
-                satir++;
-            }
+                alt_satira_gec();
         }
         metin++;
     }

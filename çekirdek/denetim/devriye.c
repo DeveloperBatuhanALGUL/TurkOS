@@ -133,3 +133,15 @@ void devriye_tik_bildir(void)
 
     denetim_olay_bildir(DENETIM_KAYNAK_DEVRIYE, DENETIM_SEVIYE_BILGI, devriye_tur_sayisi, denetim_alarm_sayisi());
 }
+
+extern void goruntu_yaz(const char *metin);
+
+__attribute__((noreturn)) void devriye_sistemi_durdur(void)
+{
+    __asm__ volatile ("cli");
+    kilitle();
+    denetim_olay_bildir(DENETIM_KAYNAK_DEVRIYE, DENETIM_SEVIYE_ALARM, 0xD0D0D0, 0);
+    goruntu_yaz("\n*** DEVRIYE: SISTEM KILITLENDI ***\n");
+    for (;;)
+        __asm__ volatile ("hlt");
+}

@@ -1,8 +1,19 @@
+/*
+ * TurkOS - Gorev Yonetimi / Task Management
+ * Telif Hakki (c) 2026 Batuhan ALGUL - Tum haklari saklidir.
+ * Copyright (c) 2026 Batuhan ALGUL - All rights reserved.
+ */
 #include "gorev.h"
 #include "denetim/gorev_denetleyici.h"
-#include "panik.h"
+#include "denetim/denetim_otobusu.h"
+#include "denetim/devriye.h"
+
+#define GOREV_HAVUZ_LIMITI 8
+#define GOREV_EN_KUCUK_YIGIN 256
+#define GOREV_OLUSTURMA_REDDI 4
 
 extern void gorev_degistir(unsigned int *eski_esp_adresi, unsigned int yeni_esp);
+extern __attribute__((noreturn)) void devriye_sistemi_durdur(void);
 
 static gorev_t *simdiki = 0;
 static unsigned int baslangic_yigin_esp;
@@ -10,8 +21,14 @@ static unsigned int sonraki_id = 0;
 
 gorev_t *gorev_olustur(void (*fonksiyon)(void), unsigned int *yigin, unsigned int boyut)
 {
-    static gorev_t havuz[8];
-    static int sayac = 0;
+    static gorev_t havuz[GOREV_HAVUZ_LIMITI];
+    static unsigned int sayac = 0;
+
+    if (sayac >= GOREV_HAVUZ_LIMITI || !fonksiyon || !yigin || boyut < GOREV_EN_KUCUK_YIGIN)
+    {
+        denetim_olay_bildir(DENETIM_KAYNAK_GOREV, DENETIM_SEVIYE_ALARM, GOREV_OLUSTURMA_REDDI, sayac);
+        return 0;
+    }
 
     gorev_t *g = &havuz[sayac++];
     unsigned int *tepe = yigin + (boyut / sizeof(unsigned int));
@@ -41,28 +58,42 @@ void gorev_baslat(gorev_t *ilk_gorev)
     gorev_degistir(&baslangic_yigin_esp, ilk_gorev->esp);
 }
 
+static int calisabilir_mi(gorev_t *g)
+{
+    return g->durum != GOREV_DURUM_KARANTINA && g->durum != GOREV_DURUM_SONLANDIRILDI;
+}
+
 static gorev_t *calisabilir_sonraki_bul(gorev_t *baslangic)
 {
     gorev_t *aday = baslangic->sonraki;
-    unsigned int tur = 0;
 
-    while (aday->durum == GOREV_DURUM_KARANTINA || aday->durum == GOREV_DURUM_SONLANDIRILDI)
+    for (unsigned int tur = 0; tur < GOREV_HAVUZ_LIMITI; tur++)
     {
+        if (calisabilir_mi(aday))
+            return aday;
+        if (aday == baslangic)
+            return 0;
         aday = aday->sonraki;
-        tur++;
-        if (tur > 8)
-            panik("Calisabilir gorev bulunamadi - tum gorevler karantinada", tur);
     }
 
-    return aday;
+    return 0;
 }
 
 void gorev_yield(void)
 {
-    gorev_t *eski = simdiki;
-    gorev_t *yeni = calisabilir_sonraki_bul(simdiki);
-    simdiki = yeni;
+    if (devriye_kilitlendi_mi())
+        devriye_sistemi_durdur();
 
+    gorev_t *eski = simdiki;
+    gorev_t *yeni = calisabilir_sonraki_bul(eski);
+
+    if (!yeni)
+        devriye_sistemi_durdur();
+
+    if (yeni == eski)
+        return;
+
+    simdiki = yeni;
     gorev_denetleyici_gecis_bildir(eski, yeni);
     gorev_degistir(&eski->esp, yeni->esp);
 }

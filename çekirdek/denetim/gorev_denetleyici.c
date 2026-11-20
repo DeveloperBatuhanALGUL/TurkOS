@@ -46,13 +46,6 @@ void gorev_denetleyici_gecis_bildir(gorev_t *eski, gorev_t *yeni)
     if (gorev_dizini_bul(eski) < 0)
         gorev_dizini_kaydet(eski);
 
-    if (eski == yeni)
-    {
-        denetim_olay_bildir(DENETIM_KAYNAK_GOREV, DENETIM_SEVIYE_ALARM, 1, (unsigned int)(unsigned long)yeni);
-        gorev_karantinaya_al(yeni);
-        return;
-    }
-
     int dizin = gorev_dizini_bul(yeni);
     if (dizin < 0)
     {
