@@ -5,9 +5,12 @@
  */
 #include "gorev.h"
 #include "denetim/gorev_denetleyici.h"
+#include "denetim/denetim_otobusu.h"
 #include "denetim/devriye.h"
 
 #define GOREV_HAVUZ_LIMITI 8
+#define GOREV_EN_KUCUK_YIGIN 256
+#define GOREV_OLUSTURMA_REDDI 4
 
 extern void gorev_degistir(unsigned int *eski_esp_adresi, unsigned int yeni_esp);
 extern __attribute__((noreturn)) void devriye_sistemi_durdur(void);
@@ -19,7 +22,13 @@ static unsigned int sonraki_id = 0;
 gorev_t *gorev_olustur(void (*fonksiyon)(void), unsigned int *yigin, unsigned int boyut)
 {
     static gorev_t havuz[GOREV_HAVUZ_LIMITI];
-    static int sayac = 0;
+    static unsigned int sayac = 0;
+
+    if (sayac >= GOREV_HAVUZ_LIMITI || !fonksiyon || !yigin || boyut < GOREV_EN_KUCUK_YIGIN)
+    {
+        denetim_olay_bildir(DENETIM_KAYNAK_GOREV, DENETIM_SEVIYE_ALARM, GOREV_OLUSTURMA_REDDI, sayac);
+        return 0;
+    }
 
     gorev_t *g = &havuz[sayac++];
     unsigned int *tepe = yigin + (boyut / sizeof(unsigned int));
