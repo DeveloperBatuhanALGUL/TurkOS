@@ -101,8 +101,13 @@ jobs:
           chmod +x batuss-derle.sh
           ./batuss-derle.sh
 
-      - name: Boot smoke test in QEMU
+      - name: Boot test in QEMU (reads VGA memory)
         run: |
-          timeout 15 qemu-system-i386 -kernel derleme/turkos.elf -display none -serial stdio -no-reboot -no-shutdown || true
-          test -f derleme/turkos.elf
-          echo "OK: kernel image produced and QEMU did not crash on launch."
+          rm -f ekran.bin
+          ( sleep 8; echo 'pmemsave 0xb8000 4000 "ekran.bin"'; sleep 2; echo "quit" ) | timeout 60 qemu-system-i386 -kernel derleme/turkos.elf -display none -no-reboot -no-shutdown -monitor stdio > qemu_monitor.log 2>&1 || true
+          test -f ekran.bin || { echo "FAILED: VGA memory could not be read"; cat qemu_monitor.log; exit 1; }
+          python3 -c "d=open('ekran.bin','rb').read()[::2].decode('cp437');[print(d[i:i+80].rstrip()) for i in range(0,2000,80) if d[i:i+80].strip()]" > ekran.txt
+          cat ekran.txt
+          if grep -q "PANIGI" ekran.txt; then echo "FAILED: kernel panic on boot"; exit 1; fi
+          grep -q "SISTEM KILITLENDI" ekran.txt || { echo "FAILED: self-test did not reach the DEVRIYE lockdown"; exit 1; }
+          echo "OK: self-test reached the DEVRIYE lockdown without a panic."
