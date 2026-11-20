@@ -5,6 +5,7 @@
  */
 #include "gorev.h"
 #include "denetim/gorev_denetleyici.h"
+#include "denetim/devriye.h"
 
 #define GOREV_HAVUZ_LIMITI 8
 
@@ -71,6 +72,9 @@ static gorev_t *calisabilir_sonraki_bul(gorev_t *baslangic)
 
 void gorev_yield(void)
 {
+    if (devriye_kilitlendi_mi())
+        devriye_sistemi_durdur();
+
     gorev_t *eski = simdiki;
     gorev_t *yeni = calisabilir_sonraki_bul(eski);
 
