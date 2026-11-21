@@ -5,12 +5,19 @@
  */
 #include "görüntü.h"
 
+#define HATA_AYIKLAMA_PORTU 0xE9
+
 static volatile unsigned short *vga_bellek = (unsigned short *)0xB8000;
 static int satir = 0;
 static int sutun = 0;
 static const int GENISLIK = 80;
 static const int YUKSEKLIK = 25;
 static const unsigned char RENK = 0x0F;
+
+static inline void hata_ayiklama_kanalina_yaz(char karakter)
+{
+    __asm__ volatile ("outb %0, %1" : : "a"(karakter), "Nd"((unsigned short)HATA_AYIKLAMA_PORTU));
+}
 
 static void satir_temizle(int hedef)
 {
@@ -46,6 +53,7 @@ void goruntu_yaz(const char *metin)
 {
     while (*metin)
     {
+        hata_ayiklama_kanalina_yaz(*metin);
         if (*metin == '\n')
             alt_satira_gec();
         else

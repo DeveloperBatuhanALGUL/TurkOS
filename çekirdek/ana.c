@@ -1,5 +1,6 @@
 #include "../sürücüler/görüntü.h"
 #include "gdt.h"
+#include "islemci.h"
 #include "../sürücüler/klavye.h"
 #include "../donanım/kkt/kesme_kapisi.h"
 #include "../donanım/zaman/zamanlayıcı.h"
@@ -69,8 +70,10 @@ void cekirdek_ana(void)
     goruntu_yaz("GDT ve TSS Hazir\n");
     goruntu_yaz("BATUSS - Batuhan ALGUL\n");
 
+    goruntu_yaz(islemci_pae_destekli() ? "Islemci: PAE var\n" : "Islemci: PAE YOK\n");
+    goruntu_yaz(islemci_nx_destekli() ? "Islemci: NX var\n" : "Islemci: NX YOK\n");
     sayfalama_baslat();
-    goruntu_yaz("Sayfalama Etkin\n");
+    goruntu_yaz(sayfalama_nx_etkin() ? "Sayfalama: PAE ve NX Etkin\n" : "Sayfalama: PAE Etkin, NX YOK\n");
 
     yigin_baslat();
     goruntu_yaz("Yigin Hazir\n");

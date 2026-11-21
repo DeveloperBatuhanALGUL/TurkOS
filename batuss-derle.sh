@@ -70,6 +70,7 @@ $AS çekirdek/gorev_gecis.s -o derleme/gorev_gecis.o
 echo "--- C dosyalari derleniyor ---"
 $CC -c çekirdek/ana.c -o derleme/ana.o
 $CC -c çekirdek/gdt.c -o derleme/gdt.o
+$CC -c çekirdek/islemci.c -o derleme/islemci.o
 $CC -c çekirdek/panik.c -o derleme/panik.o
 $CC -c çekirdek/istisnalar.c -o derleme/istisnalar.o
 $CC -c çekirdek/kullanici_modu.c -o derleme/kullanici_modu.o
@@ -91,7 +92,7 @@ echo "--- Link ediliyor ---"
 i686-elf-ld -T önyükleyici/orhun.ld -o derleme/turkos.elf \
   derleme/baslangic.o derleme/gdt_giris.o derleme/kesme_vektorleri.o \
   derleme/sayfalama_giris.o derleme/kullanici_modu_giris.o derleme/gorev_gecis.o \
-  derleme/ana.o derleme/gdt.o derleme/panik.o derleme/istisnalar.o \
+  derleme/ana.o derleme/gdt.o derleme/islemci.o derleme/panik.o derleme/istisnalar.o \
   derleme/kullanici_modu.o derleme/sistem_cagrisi.o derleme/gorev.o \
   derleme/denetim_otobusu.o derleme/gorev_denetleyici.o derleme/bellek_denetleyici.o \
   derleme/kesme_denetleyici.o derleme/devriye.o derleme/goruntu.o derleme/klavye.o \
