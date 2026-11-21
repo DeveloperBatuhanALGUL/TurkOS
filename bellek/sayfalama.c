@@ -11,6 +11,8 @@
 #define GIRDI_SAYISI 512
 #define ESLENEN_ALAN_MB 16
 #define SAYFA_TABLOSU_SAYISI (ESLENEN_ALAN_MB / 2)
+#define ESLENEN_ALAN_SONU (ESLENEN_ALAN_MB * 1024 * 1024)
+#define KORUMA_SAYFASI_LIMITI 16
 
 #define BAYRAK_VAR 0x1ULL
 #define BAYRAK_YAZILIR 0x2ULL
@@ -22,6 +24,8 @@ static sayfa_girdisi_t dizin_isaretci_tablosu[4] __attribute__((aligned(32)));
 static sayfa_girdisi_t sayfa_dizini[GIRDI_SAYISI] __attribute__((aligned(4096)));
 static sayfa_girdisi_t sayfa_tablolari[SAYFA_TABLOSU_SAYISI][GIRDI_SAYISI] __attribute__((aligned(4096)));
 static int nx_etkin = 0;
+static unsigned int koruma_sayfalari[KORUMA_SAYFASI_LIMITI];
+static unsigned int koruma_sayfasi_sayisi = 0;
 
 extern char cekirdek_metin_baslangici[];
 extern char cekirdek_metin_sonu[];
@@ -51,6 +55,34 @@ static sayfa_girdisi_t sayfa_bayragi(unsigned int adres)
 int sayfalama_nx_etkin(void)
 {
     return nx_etkin;
+}
+
+int sayfalama_koruma_sayfasi_kur(unsigned int adres)
+{
+    if (adres & (SAYFA_BOYUTU - 1))
+        return 0;
+    if (adres < SAYFA_BOYUTU || adres >= ESLENEN_ALAN_SONU)
+        return 0;
+    if (!(sayfa_bayragi(adres) & BAYRAK_YAZILIR))
+        return 0;
+    if (koruma_sayfasi_sayisi >= KORUMA_SAYFASI_LIMITI || sayfalama_koruma_sayfasi_mi(adres))
+        return 0;
+
+    unsigned int sira = adres / SAYFA_BOYUTU;
+    sayfa_tablolari[sira / GIRDI_SAYISI][sira % GIRDI_SAYISI] = 0;
+    __asm__ volatile ("invlpg (%0)" : : "r"(adres) : "memory");
+    koruma_sayfalari[koruma_sayfasi_sayisi++] = adres;
+    return 1;
+}
+
+int sayfalama_koruma_sayfasi_mi(unsigned int adres)
+{
+    unsigned int sayfa = adres & ~(unsigned int)(SAYFA_BOYUTU - 1);
+
+    for (unsigned int i = 0; i < koruma_sayfasi_sayisi; i++)
+        if (koruma_sayfalari[i] == sayfa)
+            return 1;
+    return 0;
 }
 
 void sayfalama_baslat(void)

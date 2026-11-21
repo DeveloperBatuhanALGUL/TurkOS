@@ -132,3 +132,18 @@ jobs:
           grep -q "HATA: cekirdek butunlugu bozuk" bozuk_kayit.txt || { echo "FAILED: the boot sector did not report the corrupted kernel"; exit 1; }
           if grep -q "TurkOS Cekirdek Baslatildi" bozuk_kayit.txt; then echo "FAILED: a corrupted kernel was started"; exit 1; fi
           echo "OK: the corrupted kernel was rejected before it ran."
+
+      - name: Guard page catches a kernel stack overflow (test build)
+        run: |
+          export PATH="$HOME/opt/cross/bin:$PATH"
+          export LANG=en_US.UTF-8
+          TURKOS_TEST=YIGIN_TASMASI ./batuss-derle.sh
+          KORUMA=$(i686-elf-nm derleme/turkos.elf | awk '$3=="gorev_a_alani"{print $1}' | cut -c1-5 | tr a-f A-F)
+          rm -f tasma_kayit.txt
+          ( sleep 8; echo "quit" ) | timeout 60 qemu-system-i386 -cpu "qemu32,+pae,+nx" -drive format=raw,file=derleme/turkos.img -display none -no-reboot -no-shutdown -monitor stdio -debugcon file:tasma_kayit.txt > qemu_monitor.log 2>&1 || true
+          cat tasma_kayit.txt
+          echo
+          grep -q "TEST: yigin tasmasi deneniyor" tasma_kayit.txt || { echo "FAILED: the test build did not run the overflow test"; exit 1; }
+          grep -q "Yigin Tasmasi (Koruma Sayfasi)" tasma_kayit.txt || { echo "FAILED: the stack overflow was not caught by the guard page"; exit 1; }
+          grep -q "Kod: 0x$KORUMA" tasma_kayit.txt || { echo "FAILED: the fault address is not inside the task A guard page"; exit 1; }
+          echo "OK: the guard page caught the stack overflow and the double fault task reported it."
