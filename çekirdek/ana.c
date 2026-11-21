@@ -33,12 +33,28 @@ static unsigned int yigin_tasir(unsigned int derinlik)
 }
 #endif
 
+#ifdef TURKOS_TEST_YIGIN_BOZMA
+static void yigin_boz(void)
+{
+    char tampon[16];
+    volatile char *yazici = tampon;
+
+    for (int i = 0; i < 48; i++)
+        yazici[i] = 0x41;
+}
+#endif
+
 void gorev_a_fonksiyon(void)
 {
     int sayac = 0;
 #ifdef TURKOS_TEST_YIGIN_TASMASI
     goruntu_yaz("TEST: yigin tasmasi deneniyor\n");
     yigin_tasir(0);
+#endif
+#ifdef TURKOS_TEST_YIGIN_BOZMA
+    goruntu_yaz("TEST: yigin bozma deneniyor\n");
+    yigin_boz();
+    goruntu_yaz("TEST: BOZMA YAKALANMADI\n");
 #endif
     for (;;)
     {
