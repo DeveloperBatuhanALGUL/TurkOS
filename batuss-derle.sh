@@ -98,6 +98,20 @@ i686-elf-ld -T önyükleyici/orhun.ld -o derleme/turkos.elf \
   derleme/kesme_denetleyici.o derleme/devriye.o derleme/goruntu.o derleme/klavye.o \
   derleme/kesme_kapisi.o derleme/zamanlayici.o derleme/sayfalama.o derleme/yigin_yonetici.o
 
+echo "--- Disk imaji olusturuluyor ---"
+command -v nasm >/dev/null 2>&1 || { echo "HATA: nasm bulunamadi. Kurulum icin: brew install nasm (macOS) veya sudo apt-get install nasm"; exit 1; }
+i686-elf-objcopy -O binary -j .text -j .rodata -j .data derleme/turkos.elf derleme/cekirdek.bin
+CEKIRDEK_BOYUT=$(wc -c < derleme/cekirdek.bin | tr -d ' ')
+CEKIRDEK_KESIM=$(( (CEKIRDEK_BOYUT + 511) / 512 ))
+CEKIRDEK_GIRIS=$(i686-elf-readelf -h derleme/turkos.elf | awk '/Entry point address/{print $4}')
+BSS_SON=0x$(i686-elf-nm derleme/turkos.elf | awk '$3=="cekirdek_veri_sonu"{print $1}')
+if [ "$BSS_SON" = "0x" ] || [ -z "$CEKIRDEK_GIRIS" ]; then echo "HATA: cekirdek giris adresi veya bss sonu okunamadi"; exit 1; fi
+nasm -f bin -DCEKIRDEK_KESIM=$CEKIRDEK_KESIM -DCEKIRDEK_GIRIS=$CEKIRDEK_GIRIS -DBSS_SON=$BSS_SON önyükleyici/açılış_kesimi.asm -o derleme/acilis_kesimi.bin
+cat derleme/acilis_kesimi.bin derleme/cekirdek.bin > derleme/turkos.img
+DOLGU=$(( CEKIRDEK_KESIM * 512 - CEKIRDEK_BOYUT ))
+if [ "$DOLGU" -gt 0 ]; then dd if=/dev/zero bs=1 count=$DOLGU >> derleme/turkos.img 2>/dev/null; fi
+echo "Disk imaji: derleme/turkos.img ($CEKIRDEK_KESIM kesim cekirdek, giris $CEKIRDEK_GIRIS)"
+
 echo "=== Derleme tamamlandi: derleme/turkos.elf ==="
 ls -la derleme/turkos.elf
 
@@ -112,5 +126,5 @@ if [ "$1" == "--calistir" ]; then
       exit 1
   }
   echo "--- QEMU baslatiliyor ---"
-  qemu-system-i386 -kernel derleme/turkos.elf -display cocoa -d guest_errors -no-reboot -no-shutdown
+  qemu-system-i386 -drive format=raw,file=derleme/turkos.img -display cocoa -d guest_errors -no-reboot -no-shutdown
 fi

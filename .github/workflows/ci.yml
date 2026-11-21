@@ -61,7 +61,7 @@ jobs:
       - name: Install cross-compiler toolchain and QEMU
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo qemu-system-x86 wget
+          sudo apt-get install -y build-essential bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo qemu-system-x86 nasm wget
 
       - name: Cache cross-compiler toolchain
         id: cache-toolchain
@@ -101,12 +101,12 @@ jobs:
           chmod +x batuss-derle.sh
           ./batuss-derle.sh
 
-      - name: Boot test in QEMU (debug channel log, with and without NX)
+      - name: Boot test in QEMU from the disk image (with and without NX)
         run: |
           for ISLEMCI in "qemu32" "qemu32,+pae,+nx"; do
             echo "--- CPU: $ISLEMCI ---"
             rm -f kayit.txt
-            ( sleep 8; echo "quit" ) | timeout 60 qemu-system-i386 -cpu "$ISLEMCI" -kernel derleme/turkos.elf -display none -no-reboot -no-shutdown -monitor stdio -debugcon file:kayit.txt > qemu_monitor.log 2>&1 || true
+            ( sleep 8; echo "quit" ) | timeout 60 qemu-system-i386 -cpu "$ISLEMCI" -drive format=raw,file=derleme/turkos.img -display none -no-reboot -no-shutdown -monitor stdio -debugcon file:kayit.txt > qemu_monitor.log 2>&1 || true
             test -s kayit.txt || { echo "FAILED: debug channel log is empty ($ISLEMCI)"; cat qemu_monitor.log; exit 1; }
             cat kayit.txt
             echo
