@@ -147,3 +147,20 @@ jobs:
           grep -q "Yigin Tasmasi (Koruma Sayfasi)" tasma_kayit.txt || { echo "FAILED: the stack overflow was not caught by the guard page"; exit 1; }
           grep -q "Kod: 0x$KORUMA" tasma_kayit.txt || { echo "FAILED: the fault address is not inside the task A guard page"; exit 1; }
           echo "OK: the guard page caught the stack overflow and the double fault task reported it."
+
+      - name: Stack protector catches a smashed stack (test build)
+        run: |
+          export PATH="$HOME/opt/cross/bin:$PATH"
+          export LANG=en_US.UTF-8
+          TURKOS_TEST=YIGIN_BOZMA ./batuss-derle.sh
+          KORUNAN=$(i686-elf-objdump -d derleme/turkos.elf | grep -c 'call.*<__stack_chk_fail>' || true)
+          echo "Functions with a stack canary: $KORUNAN"
+          test "$KORUNAN" -gt 0 || { echo "FAILED: the kernel was built without stack protection"; exit 1; }
+          rm -f bozma_kayit.txt
+          ( sleep 8; echo "quit" ) | timeout 60 qemu-system-i386 -cpu "qemu32,+pae,+nx" -drive format=raw,file=derleme/turkos.img -display none -no-reboot -no-shutdown -monitor stdio -debugcon file:bozma_kayit.txt > qemu_monitor.log 2>&1 || true
+          cat bozma_kayit.txt
+          echo
+          grep -q "TEST: yigin bozma deneniyor" bozma_kayit.txt || { echo "FAILED: the test build did not run the stack smashing test"; exit 1; }
+          grep -q "Yigin Bozulmasi (Stack Smashing)" bozma_kayit.txt || { echo "FAILED: the smashed stack was not detected"; exit 1; }
+          if grep -q "BOZMA YAKALANMADI" bozma_kayit.txt; then echo "FAILED: a function with a smashed stack returned"; exit 1; fi
+          echo "OK: the stack canary caught the overwrite before the function returned."
