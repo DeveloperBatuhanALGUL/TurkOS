@@ -108,7 +108,7 @@ i686-elf-ld -T önyükleyici/orhun.ld -o derleme/turkos.elf \
 
 echo "--- Disk imaji olusturuluyor ---"
 command -v nasm >/dev/null 2>&1 || { echo "HATA: nasm bulunamadi. Kurulum icin: brew install nasm (macOS) veya sudo apt-get install nasm"; exit 1; }
-i686-elf-objcopy -O binary -j .text -j .rodata -j .data derleme/turkos.elf derleme/cekirdek.bin
+i686-elf-objcopy -O binary -j .text -j .rodata -j .kullanici_metin -j .kullanici_veri -j .data derleme/turkos.elf derleme/cekirdek.bin
 CEKIRDEK_BOYUT=$(wc -c < derleme/cekirdek.bin | tr -d ' ')
 CEKIRDEK_KESIM=$(( (CEKIRDEK_BOYUT + 511) / 512 ))
 CEKIRDEK_GIRIS=$(i686-elf-readelf -h derleme/turkos.elf | awk '/Entry point address/{print $4}')

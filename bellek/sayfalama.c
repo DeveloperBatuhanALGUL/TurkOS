@@ -16,6 +16,7 @@
 
 #define BAYRAK_VAR 0x1ULL
 #define BAYRAK_YAZILIR 0x2ULL
+#define BAYRAK_KULLANICI 0x4ULL
 #define BAYRAK_CALISTIRILAMAZ (1ULL << 63)
 
 typedef unsigned long long sayfa_girdisi_t;
@@ -30,6 +31,10 @@ static unsigned int koruma_sayfasi_sayisi = 0;
 extern char cekirdek_metin_baslangici[];
 extern char cekirdek_metin_sonu[];
 extern char cekirdek_salt_okunur_sonu[];
+extern char kullanici_metin_baslangici[];
+extern char kullanici_metin_sonu[];
+extern char kullanici_veri_baslangici[];
+extern char kullanici_veri_sonu[];
 extern void sayfalama_etkinlestir(unsigned int isaretci_tablosu_adresi, int nx_ac);
 
 static __attribute__((noreturn)) void sistemi_durdur(const char *neden)
@@ -49,6 +54,10 @@ static sayfa_girdisi_t sayfa_bayragi(unsigned int adres)
         return BAYRAK_VAR;
     if (adres >= (unsigned int)cekirdek_metin_sonu && adres < (unsigned int)cekirdek_salt_okunur_sonu)
         return BAYRAK_VAR | nx;
+    if (adres >= (unsigned int)kullanici_metin_baslangici && adres < (unsigned int)kullanici_metin_sonu)
+        return BAYRAK_VAR | BAYRAK_KULLANICI;
+    if (adres >= (unsigned int)kullanici_veri_baslangici && adres < (unsigned int)kullanici_veri_sonu)
+        return BAYRAK_VAR | BAYRAK_YAZILIR | BAYRAK_KULLANICI | nx;
     return BAYRAK_VAR | BAYRAK_YAZILIR | nx;
 }
 
@@ -99,7 +108,7 @@ void sayfalama_baslat(void)
             unsigned int adres = (unsigned int)(t * GIRDI_SAYISI + g) * SAYFA_BOYUTU;
             sayfa_tablolari[t][g] = (sayfa_girdisi_t)adres | sayfa_bayragi(adres);
         }
-        sayfa_dizini[t] = (sayfa_girdisi_t)(unsigned int)sayfa_tablolari[t] | BAYRAK_VAR | BAYRAK_YAZILIR;
+        sayfa_dizini[t] = (sayfa_girdisi_t)(unsigned int)sayfa_tablolari[t] | BAYRAK_VAR | BAYRAK_YAZILIR | BAYRAK_KULLANICI;
     }
 
     for (int t = SAYFA_TABLOSU_SAYISI; t < GIRDI_SAYISI; t++)
