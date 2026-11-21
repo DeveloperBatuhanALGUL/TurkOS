@@ -106,11 +106,12 @@ CEKIRDEK_KESIM=$(( (CEKIRDEK_BOYUT + 511) / 512 ))
 CEKIRDEK_GIRIS=$(i686-elf-readelf -h derleme/turkos.elf | awk '/Entry point address/{print $4}')
 BSS_SON=0x$(i686-elf-nm derleme/turkos.elf | awk '$3=="cekirdek_veri_sonu"{print $1}')
 if [ "$BSS_SON" = "0x" ] || [ -z "$CEKIRDEK_GIRIS" ]; then echo "HATA: cekirdek giris adresi veya bss sonu okunamadi"; exit 1; fi
-nasm -f bin -DCEKIRDEK_KESIM=$CEKIRDEK_KESIM -DCEKIRDEK_GIRIS=$CEKIRDEK_GIRIS -DBSS_SON=$BSS_SON önyükleyici/açılış_kesimi.asm -o derleme/acilis_kesimi.bin
+CEKIRDEK_CRC=$(python3 -c "import zlib; d = open('derleme/cekirdek.bin', 'rb').read(); d += bytes(-len(d) % 512); print('0x%08x' % zlib.crc32(d))")
+nasm -f bin -DCEKIRDEK_KESIM=$CEKIRDEK_KESIM -DCEKIRDEK_GIRIS=$CEKIRDEK_GIRIS -DBSS_SON=$BSS_SON -DCEKIRDEK_CRC=$CEKIRDEK_CRC önyükleyici/açılış_kesimi.asm -o derleme/acilis_kesimi.bin
 cat derleme/acilis_kesimi.bin derleme/cekirdek.bin > derleme/turkos.img
 DOLGU=$(( CEKIRDEK_KESIM * 512 - CEKIRDEK_BOYUT ))
 if [ "$DOLGU" -gt 0 ]; then dd if=/dev/zero bs=1 count=$DOLGU >> derleme/turkos.img 2>/dev/null; fi
-echo "Disk imaji: derleme/turkos.img ($CEKIRDEK_KESIM kesim cekirdek, giris $CEKIRDEK_GIRIS)"
+echo "Disk imaji: derleme/turkos.img ($CEKIRDEK_KESIM kesim cekirdek, giris $CEKIRDEK_GIRIS, CRC32 $CEKIRDEK_CRC)"
 
 echo "=== Derleme tamamlandi: derleme/turkos.elf ==="
 ls -la derleme/turkos.elf
