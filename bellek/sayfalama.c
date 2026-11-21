@@ -4,51 +4,78 @@
  * Copyright (c) 2026 Batuhan ALGUL - All rights reserved.
  */
 #include "sayfalama.h"
+#include "../çekirdek/islemci.h"
+#include "../sürücüler/görüntü.h"
 
-#define GIRDI_SAYISI 1024
 #define SAYFA_BOYUTU 4096
-#define ESLENEN_MB 16
-#define CEKIRDEK_SAYFA_BAYRAK 0x3
-#define SALT_OKUNUR_SAYFA_BAYRAK 0x1
-#define KAPALI_SAYFA_BAYRAK 0x0
-#define BOS_GIRDI_BAYRAK 0x2
+#define GIRDI_SAYISI 512
+#define ESLENEN_ALAN_MB 16
+#define SAYFA_TABLOSU_SAYISI (ESLENEN_ALAN_MB / 2)
 
-static unsigned int sayfa_dizini[GIRDI_SAYISI] __attribute__((aligned(4096)));
-static unsigned int sayfa_tablolari[ESLENEN_MB][GIRDI_SAYISI] __attribute__((aligned(4096)));
+#define BAYRAK_VAR 0x1ULL
+#define BAYRAK_YAZILIR 0x2ULL
+#define BAYRAK_CALISTIRILAMAZ (1ULL << 63)
+
+typedef unsigned long long sayfa_girdisi_t;
+
+static sayfa_girdisi_t dizin_isaretci_tablosu[4] __attribute__((aligned(32)));
+static sayfa_girdisi_t sayfa_dizini[GIRDI_SAYISI] __attribute__((aligned(4096)));
+static sayfa_girdisi_t sayfa_tablolari[SAYFA_TABLOSU_SAYISI][GIRDI_SAYISI] __attribute__((aligned(4096)));
+static int nx_etkin = 0;
 
 extern char cekirdek_metin_baslangici[];
+extern char cekirdek_metin_sonu[];
 extern char cekirdek_salt_okunur_sonu[];
-extern void sayfalama_etkinlestir(unsigned int *dizin_adresi);
+extern void sayfalama_etkinlestir(unsigned int isaretci_tablosu_adresi, int nx_ac);
 
-static int salt_okunur_bolgede_mi(unsigned int adres)
+static __attribute__((noreturn)) void sistemi_durdur(const char *neden)
 {
-    return adres >= (unsigned int)cekirdek_metin_baslangici
-        && adres < (unsigned int)cekirdek_salt_okunur_sonu;
+    goruntu_yaz(neden);
+    for (;;)
+        __asm__ volatile ("cli; hlt");
 }
 
-static unsigned int sayfa_bayragi(unsigned int adres)
+static sayfa_girdisi_t sayfa_bayragi(unsigned int adres)
 {
+    sayfa_girdisi_t nx = nx_etkin ? BAYRAK_CALISTIRILAMAZ : 0;
+
     if (adres < SAYFA_BOYUTU)
-        return KAPALI_SAYFA_BAYRAK;
-    if (salt_okunur_bolgede_mi(adres))
-        return SALT_OKUNUR_SAYFA_BAYRAK;
-    return CEKIRDEK_SAYFA_BAYRAK;
+        return 0;
+    if (adres >= (unsigned int)cekirdek_metin_baslangici && adres < (unsigned int)cekirdek_metin_sonu)
+        return BAYRAK_VAR;
+    if (adres >= (unsigned int)cekirdek_metin_sonu && adres < (unsigned int)cekirdek_salt_okunur_sonu)
+        return BAYRAK_VAR | nx;
+    return BAYRAK_VAR | BAYRAK_YAZILIR | nx;
+}
+
+int sayfalama_nx_etkin(void)
+{
+    return nx_etkin;
 }
 
 void sayfalama_baslat(void)
 {
-    for (int t = 0; t < ESLENEN_MB; t++)
+    if (!islemci_pae_destekli())
+        sistemi_durdur("\n*** SAYFALAMA: PAE YOK, SISTEM DURDURULDU ***\n");
+
+    nx_etkin = islemci_nx_destekli();
+
+    for (int t = 0; t < SAYFA_TABLOSU_SAYISI; t++)
     {
         for (int g = 0; g < GIRDI_SAYISI; g++)
         {
-            unsigned int fiziksel_adres = (t * GIRDI_SAYISI + g) * SAYFA_BOYUTU;
-            sayfa_tablolari[t][g] = fiziksel_adres | sayfa_bayragi(fiziksel_adres);
+            unsigned int adres = (unsigned int)(t * GIRDI_SAYISI + g) * SAYFA_BOYUTU;
+            sayfa_tablolari[t][g] = (sayfa_girdisi_t)adres | sayfa_bayragi(adres);
         }
-        sayfa_dizini[t] = ((unsigned int)sayfa_tablolari[t]) | CEKIRDEK_SAYFA_BAYRAK;
+        sayfa_dizini[t] = (sayfa_girdisi_t)(unsigned int)sayfa_tablolari[t] | BAYRAK_VAR | BAYRAK_YAZILIR;
     }
 
-    for (int t = ESLENEN_MB; t < GIRDI_SAYISI; t++)
-        sayfa_dizini[t] = BOS_GIRDI_BAYRAK;
+    for (int t = SAYFA_TABLOSU_SAYISI; t < GIRDI_SAYISI; t++)
+        sayfa_dizini[t] = 0;
 
-    sayfalama_etkinlestir(sayfa_dizini);
+    dizin_isaretci_tablosu[0] = (sayfa_girdisi_t)(unsigned int)sayfa_dizini | BAYRAK_VAR;
+    for (int i = 1; i < 4; i++)
+        dizin_isaretci_tablosu[i] = 0;
+
+    sayfalama_etkinlestir((unsigned int)dizin_isaretci_tablosu, nx_etkin);
 }
