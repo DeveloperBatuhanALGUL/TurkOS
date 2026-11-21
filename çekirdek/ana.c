@@ -21,9 +21,25 @@ extern char yigin_koruma[];
 static unsigned char gorev_a_alani[2 * SAYFA_BOYUTU] __attribute__((aligned(SAYFA_BOYUTU)));
 static unsigned char gorev_b_alani[2 * SAYFA_BOYUTU] __attribute__((aligned(SAYFA_BOYUTU)));
 
+#ifdef TURKOS_TEST_YIGIN_TASMASI
+static unsigned int yigin_tasir(unsigned int derinlik)
+{
+    volatile unsigned char tampon[256];
+
+    tampon[0] = (unsigned char)derinlik;
+    if (derinlik == 0xFFFFFFFF)
+        return 0;
+    return yigin_tasir(derinlik + 1) + tampon[0];
+}
+#endif
+
 void gorev_a_fonksiyon(void)
 {
     int sayac = 0;
+#ifdef TURKOS_TEST_YIGIN_TASMASI
+    goruntu_yaz("TEST: yigin tasmasi deneniyor\n");
+    yigin_tasir(0);
+#endif
     for (;;)
     {
         goruntu_yaz("A");

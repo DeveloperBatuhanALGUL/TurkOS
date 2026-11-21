@@ -56,8 +56,15 @@ command -v i686-elf-ld  >/dev/null 2>&1 || { echo "HATA: i686-elf-ld kurulumdan 
 
 mkdir -p derleme
 
+if [ -n "${TURKOS_TEST:-}" ]; then
+  case "$TURKOS_TEST" in
+    *[!A-Z_]*) echo "HATA: TURKOS_TEST yalnizca buyuk harf ve alt cizgi icerebilir"; exit 1 ;;
+  esac
+  echo "TEST KIPI: $TURKOS_TEST"
+fi
+
 AS="i686-elf-as"
-CC="i686-elf-gcc -ffreestanding -fno-stack-protector -fno-pic -nostdlib -Wall -Wextra -std=gnu99"
+CC="i686-elf-gcc -ffreestanding -fno-stack-protector -fno-pic -nostdlib -Wall -Wextra -std=gnu99${TURKOS_TEST:+ -DTURKOS_TEST_$TURKOS_TEST}"
 
 echo "--- Assembly dosyalari derleniyor ---"
 $AS önyükleyici/başlangıç.s -o derleme/baslangic.o
