@@ -49,6 +49,15 @@ void idt_kapi_ayarla_kullanici(int numara, unsigned int konum)
     idt[numara].ust = (konum >> 16) & 0xFFFF;
 }
 
+void idt_gorev_kapisi_ayarla(int numara, unsigned short secici)
+{
+    idt[numara].alt = 0;
+    idt[numara].secici = secici;
+    idt[numara].sifir = 0;
+    idt[numara].bayrak = 0x85;
+    idt[numara].ust = 0;
+}
+
 void kesme_yoneticisi_kaydet(int numara, void (*isleyici)(void))
 {
     kesme_isleyicileri[numara] = isleyici;
@@ -88,6 +97,8 @@ void idt_baslat(void)
 
     for (int i = 0; i < 32; i++)
         idt_kapi_ayarla(i, (unsigned int)istisna_girisleri[i]);
+
+    idt_gorev_kapisi_ayarla(8, 0x30);
 
     idt_kapi_ayarla(32, (unsigned int)irq0_giris);
     idt_kapi_ayarla(33, (unsigned int)irq1_giris);

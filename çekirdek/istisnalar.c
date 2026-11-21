@@ -6,6 +6,7 @@
 #include "istisnalar.h"
 #include "panik.h"
 #include "denetim/kesme_denetleyici.h"
+#include "../bellek/sayfalama.h"
 
 static const char *istisna_adlari[20] = {
     "Sifira Bolme (Divide By Zero)",
@@ -44,7 +45,27 @@ void istisna_isleyici(unsigned int numara, unsigned int kod)
     kesme_denetleyici_istisna_bildir(numara, kod);
 
     if (numara == 14)
-        panik(isim, cr2_oku());
+    {
+        unsigned int adres = cr2_oku();
+        if (sayfalama_koruma_sayfasi_mi(adres))
+            panik("Yigin Tasmasi (Koruma Sayfasi)", adres);
+        panik(isim, adres);
+    }
     else
         panik(isim, kod);
+}
+
+__attribute__((noreturn)) void cift_hata_gorevi(void)
+{
+    unsigned int adres = cr2_oku();
+
+    kesme_denetleyici_istisna_bildir(8, adres);
+
+    if (sayfalama_koruma_sayfasi_mi(adres))
+        panik("Yigin Tasmasi (Koruma Sayfasi)", adres);
+    else
+        panik("Cifte Hata (Double Fault)", adres);
+
+    for (;;)
+        __asm__ volatile ("cli; hlt");
 }

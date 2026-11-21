@@ -84,6 +84,8 @@ void cekirdek_ana(void)
     goruntu_yaz("Koruma Sayfalari: ");
     goruntu_yaz_hex(koruma_sayisi);
     goruntu_yaz("\n");
+    cift_hata_gorevi_hazirla();
+    goruntu_yaz("Cift Hata Gorevi Hazir\n");
 
     yigin_baslat();
     goruntu_yaz("Yigin Hazir\n");
