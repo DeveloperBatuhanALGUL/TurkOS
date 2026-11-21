@@ -10,6 +10,9 @@ org 0x7C00
 %ifndef BSS_SON
 %error "BSS_SON tanimli degil"
 %endif
+%ifndef CEKIRDEK_CRC
+%error "CEKIRDEK_CRC tanimli degil"
+%endif
 %if CEKIRDEK_KESIM > 127
 %error "Cekirdek tek okumada yuklenemeyecek kadar buyuk"
 %endif
@@ -90,6 +93,26 @@ korumali_kip:
     mov edi, 0x100000
     mov ecx, CEKIRDEK_KESIM * 128
     rep movsd
+
+    mov esi, 0x100000
+    mov ecx, CEKIRDEK_KESIM * 512
+    mov edx, 0xFFFFFFFF
+.crc_bayt:
+    xor dl, [esi]
+    inc esi
+    mov bl, 8
+.crc_bit:
+    shr edx, 1
+    jnc .crc_atla
+    xor edx, 0xEDB88320
+.crc_atla:
+    dec bl
+    jnz .crc_bit
+    loop .crc_bayt
+    not edx
+    cmp edx, CEKIRDEK_CRC
+    jne butunluk_hatasi
+
     mov ecx, BSS_SON
     sub ecx, edi
     shr ecx, 2
@@ -97,6 +120,22 @@ korumali_kip:
     rep stosd
     mov eax, CEKIRDEK_GIRIS
     jmp eax
+
+butunluk_hatasi:
+    mov esi, mesaj_butunluk
+    mov edi, 0xB8000
+    mov ah, 0x4F
+.yaz:
+    lodsb
+    test al, al
+    jz .dur
+    out 0xE9, al
+    stosw
+    jmp .yaz
+.dur:
+    cli
+    hlt
+    jmp .dur
 
 align 8
 gdt:
@@ -119,6 +158,7 @@ surucu: db 0
 mesaj_basla: db "TurkOS onyukleyici", 13, 10, 0
 mesaj_lba: db "HATA: LBA yok", 0
 mesaj_disk: db "HATA: disk okunamadi", 0
+mesaj_butunluk: db "HATA: cekirdek butunlugu bozuk", 0
 
 times 446 - ($ - $$) db 0
 db 0x80, 0xFE, 0xFF, 0xFF, 0x7F, 0xFE, 0xFF, 0xFF
