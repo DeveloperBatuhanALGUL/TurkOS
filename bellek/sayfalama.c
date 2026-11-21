@@ -10,6 +10,7 @@
 #define ESLENEN_MB 16
 #define CEKIRDEK_SAYFA_BAYRAK 0x3
 #define SALT_OKUNUR_SAYFA_BAYRAK 0x1
+#define KAPALI_SAYFA_BAYRAK 0x0
 #define BOS_GIRDI_BAYRAK 0x2
 
 static unsigned int sayfa_dizini[GIRDI_SAYISI] __attribute__((aligned(4096)));
@@ -25,6 +26,15 @@ static int salt_okunur_bolgede_mi(unsigned int adres)
         && adres < (unsigned int)cekirdek_salt_okunur_sonu;
 }
 
+static unsigned int sayfa_bayragi(unsigned int adres)
+{
+    if (adres < SAYFA_BOYUTU)
+        return KAPALI_SAYFA_BAYRAK;
+    if (salt_okunur_bolgede_mi(adres))
+        return SALT_OKUNUR_SAYFA_BAYRAK;
+    return CEKIRDEK_SAYFA_BAYRAK;
+}
+
 void sayfalama_baslat(void)
 {
     for (int t = 0; t < ESLENEN_MB; t++)
@@ -32,10 +42,7 @@ void sayfalama_baslat(void)
         for (int g = 0; g < GIRDI_SAYISI; g++)
         {
             unsigned int fiziksel_adres = (t * GIRDI_SAYISI + g) * SAYFA_BOYUTU;
-            unsigned int bayrak = salt_okunur_bolgede_mi(fiziksel_adres)
-                ? SALT_OKUNUR_SAYFA_BAYRAK
-                : CEKIRDEK_SAYFA_BAYRAK;
-            sayfa_tablolari[t][g] = fiziksel_adres | bayrak;
+            sayfa_tablolari[t][g] = fiziksel_adres | sayfa_bayragi(fiziksel_adres);
         }
         sayfa_dizini[t] = ((unsigned int)sayfa_tablolari[t]) | CEKIRDEK_SAYFA_BAYRAK;
     }
