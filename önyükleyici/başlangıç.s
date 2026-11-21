@@ -9,7 +9,10 @@
 .long SAGLAMA
 
 .section .bss
-.align 16
+.align 4096
+.global yigin_koruma
+yigin_koruma:
+.skip 4096
 yigin_alt:
 .skip 16384
 yigin_ust:

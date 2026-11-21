@@ -14,8 +14,12 @@
 #include "denetim/kesme_denetleyici.h"
 #include "denetim/devriye.h"
 
-static unsigned char gorev_a_yigini[4096] __attribute__((aligned(16)));
-static unsigned char gorev_b_yigini[4096] __attribute__((aligned(16)));
+#define SAYFA_BOYUTU 4096
+
+extern char yigin_koruma[];
+
+static unsigned char gorev_a_alani[2 * SAYFA_BOYUTU] __attribute__((aligned(SAYFA_BOYUTU)));
+static unsigned char gorev_b_alani[2 * SAYFA_BOYUTU] __attribute__((aligned(SAYFA_BOYUTU)));
 
 void gorev_a_fonksiyon(void)
 {
@@ -74,6 +78,12 @@ void cekirdek_ana(void)
     goruntu_yaz(islemci_nx_destekli() ? "Islemci: NX var\n" : "Islemci: NX YOK\n");
     sayfalama_baslat();
     goruntu_yaz(sayfalama_nx_etkin() ? "Sayfalama: PAE ve NX Etkin\n" : "Sayfalama: PAE Etkin, NX YOK\n");
+    unsigned int koruma_sayisi = sayfalama_koruma_sayfasi_kur((unsigned int)yigin_koruma)
+        + sayfalama_koruma_sayfasi_kur((unsigned int)gorev_a_alani)
+        + sayfalama_koruma_sayfasi_kur((unsigned int)gorev_b_alani);
+    goruntu_yaz("Koruma Sayfalari: ");
+    goruntu_yaz_hex(koruma_sayisi);
+    goruntu_yaz("\n");
 
     yigin_baslat();
     goruntu_yaz("Yigin Hazir\n");
@@ -92,8 +102,8 @@ void cekirdek_ana(void)
 
     goruntu_yaz("Gorev Degisimi Deneniyor: ");
 
-    gorev_t *gorev_a = gorev_olustur(gorev_a_fonksiyon, (unsigned int *)gorev_a_yigini, sizeof(gorev_a_yigini));
-    gorev_t *gorev_b = gorev_olustur(gorev_b_fonksiyon, (unsigned int *)gorev_b_yigini, sizeof(gorev_b_yigini));
+    gorev_t *gorev_a = gorev_olustur(gorev_a_fonksiyon, (unsigned int *)(gorev_a_alani + SAYFA_BOYUTU), SAYFA_BOYUTU);
+    gorev_t *gorev_b = gorev_olustur(gorev_b_fonksiyon, (unsigned int *)(gorev_b_alani + SAYFA_BOYUTU), SAYFA_BOYUTU);
 
     gorev_zincirle(gorev_a, gorev_b);
     gorev_zincirle(gorev_b, gorev_a);
